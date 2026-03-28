@@ -6,13 +6,12 @@ from tools.tools_k8s import (
     get_node_capacity, get_persistent_volumes, get_service, get_ingress, describe_pv,
     get_configmap_list, get_secret_list, get_resource_quotas, get_limit_ranges,
     get_serviceaccounts, get_cluster_role_bindings, get_namespace_status,
-    get_pod_tolerations, get_pod_resource_requests, run_cluster_health, get_replicaset,
+    get_pod_tolerations, run_cluster_health, get_replicaset, get_crds, get_longhorn_node_status,
     get_namespace_resource_summary, get_pod_images, get_unhealthy_pods_detail,
     get_coredns_health, get_pv_usage, find_resource, get_pod_containers_resources, get_cronjob_status,
     kubectl_exec, exec_db_query, get_pod_storage, get_pdb_status, get_pods_using_resource,
     get_certificate_status, get_control_plane_status, get_network_policy_status, get_webhook_health,
     get_top_pods, get_top_nodes, get_ingress_traffic, get_longhorn_settings, get_pods_on_node,
-    get_crds, get_longhorn_node_status,
 )
 
 _P_NS = {
@@ -937,25 +936,25 @@ K8S_TOOL_METADATA: dict = {
         },
     },
 
-    "get_pod_resource_requests": {
-        "fn":          get_pod_resource_requests,
-        "description": (
-            "Show detailed CPU and memory RESOURCE REQUESTS and LIMITS for containers across pods. "
-            "Returns a Markdown table with per-container and per-pod resource requests and limits. "
-            "Also shows which containers request GPU resources. "
-            "Supports filtering pods by name or namespace using the 'search' parameter. "
-            "If no search matches, the table falls back to listing all pods. "
-            "This is scheduling allocation data from pod.spec.resources, NOT real-time usage. "
-            "Use for questions like: 'cpu request for pod X', 'memory limit for pod Y', "
-            "'resources requested by pods', 'which pods request GPU', or 'per-pod resource breakdown'. "
-            "Do NOT use for totals, sums, or calculations across a namespace — use get_namespace_resource_summary instead. "
-            "Do NOT use for runtime health/status — use get_pod_status instead."
-        ),
-        "parameters":  {
-            "namespace": _P_NS,
-            "search":    {**_P_SEARCH, "description": "Optional string to filter pods or namespaces (partial match)."},
-        },
-    },
+#    "get_pod_resource_requests": {
+#        "fn":          get_pod_resource_requests,
+#        "description": (
+#            "Show detailed CPU and memory RESOURCE REQUESTS and LIMITS for containers across pods. "
+#            "Returns a Markdown table with per-container and per-pod resource requests and limits. "
+#            "Also shows which containers request GPU resources. "
+#            "Supports filtering pods by name or namespace using the 'search' parameter. "
+#            "If no search matches, the table falls back to listing all pods. "
+#            "This is scheduling allocation data from pod.spec.resources, NOT real-time usage. "
+#            "Use for questions like: 'cpu request for pod X', 'memory limit for pod Y', "
+#            "'resources requested by pods', 'which pods request GPU', or 'per-pod resource breakdown'. "
+#            "Do NOT use for totals, sums, or calculations across a namespace — use get_namespace_resource_summary instead. "
+#            "Do NOT use for runtime health/status — use get_pod_status instead."
+#        ),
+#        "parameters":  {
+#            "namespace": _P_NS,
+#            "search":    {**_P_SEARCH, "description": "Optional string to filter pods or namespaces (partial match)."},
+#        },
+#    },
 
     "run_cluster_health": {
         "fn":          run_cluster_health,
