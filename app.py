@@ -201,7 +201,8 @@ def _build_llm():
         if is_qwen3: _log_ag.info("[LLM] Qwen3 detected — native tool-calling via apply_chat_template")
 
         device_map = "auto" if config.NUM_GPU > 0 else "cpu"
-        dtype = torch.bfloat16 if config.NUM_GPU > 0 else torch.float32
+        #dtype = torch.bfloat16 if config.NUM_GPU > 0 else torch.float32
+        dtype = torch.bfloat16
 
         tokenizer = transformers.AutoTokenizer.from_pretrained(config.LLM_MODEL, trust_remote_code=True)
         model = transformers.AutoModelForCausalLM.from_pretrained(
