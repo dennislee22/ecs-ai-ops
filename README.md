@@ -179,7 +179,7 @@ The ECS Knowledge Bot app reads configuration values in the following order of p
 a. **Command-Line Arguments (CLI)**  
    Values passed when starting the app (e.g., `--port`, `--host`, `--model-dir`, `--embed-dir`) override all other settings.
 
-b. **Settings File (`settings.json`)**  
+b. **Settings File (`config/settings.json`)**  
    Persistent overrides applied in `config/settings.json` are loaded next. `MAX_NEW_TOKENS`, `LLM_TIMEOUT`, or `_KUBECTL_MAX_OUT` will automatically be updated according to the :gear: Settings in the Chatbot UI.
 
 c. **Environment Variables (`env`)**  
