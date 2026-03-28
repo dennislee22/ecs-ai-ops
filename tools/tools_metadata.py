@@ -940,14 +940,15 @@ K8S_TOOL_METADATA: dict = {
     "get_pod_resource_requests": {
         "fn":          get_pod_resource_requests,
         "description": (
-            "Show CPU and memory RESOURCE REQUESTS and LIMITS for containers across pods. "
-            "Returns a Markdown table with requested CPU, memory, and totals per pod. "
+            "Show detailed CPU and memory RESOURCE REQUESTS and LIMITS for containers across pods. "
+            "Returns a Markdown table with per-container and per-pod resource requests and limits. "
             "Also shows which containers request GPU resources. "
             "Supports filtering pods by name or namespace using the 'search' parameter. "
             "If no search matches, the table falls back to listing all pods. "
             "This is scheduling allocation data from pod.spec.resources, NOT real-time usage. "
             "Use for questions like: 'cpu request for pod X', 'memory limit for pod Y', "
-            "'resources requested by pods', or 'which pods request GPU'. "
+            "'resources requested by pods', 'which pods request GPU', or 'per-pod resource breakdown'. "
+            "Do NOT use for totals, sums, or calculations across a namespace — use get_namespace_resource_summary instead. "
             "Do NOT use for runtime health/status — use get_pod_status instead."
         ),
         "parameters":  {
@@ -977,12 +978,13 @@ K8S_TOOL_METADATA: dict = {
     "get_namespace_resource_summary": {
         "fn":          get_namespace_resource_summary,
         "description": (
-            "Aggregate CPU and memory RESOURCE REQUESTS and LIMITS across ALL pods in a namespace. "
-            "Returns the TOTAL CPU and memory requests/limits first, followed by a per-pod breakdown. "
+            "Calculate and aggregate TOTAL CPU and memory RESOURCE REQUESTS and LIMITS across ALL pods in a namespace. "
+            "Returns the TOTAL (sum) CPU and memory requests/limits first, followed by a per-pod breakdown. "
             "This represents Kubernetes scheduling allocation, NOT real-time usage. "
-            "Use for: 'total cpu requested in namespace', 'sum of memory requests in namespace', "
-            "'namespace resource allocation', 'how much CPU or RAM is requested in namespace X'. "
-            "Do NOT use for a single pod — use get_pod_resource_requests instead. "
+            "Use for: 'calculate total cpu requested in namespace', 'sum of memory requests in namespace', "
+            "'total resources in namespace', 'how much CPU or RAM is requested in namespace X', "
+            "'aggregate resource usage for namespace', 'overall resource allocation'. "
+            "Do NOT use for a single pod or detailed container-level breakdown — use get_pod_resource_requests instead. "
             "Do NOT use for real-time utilization — use get_top_pods or get_top_nodes instead."
         ),
         "parameters":  {"namespace": _P_NS},

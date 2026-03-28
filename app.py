@@ -85,7 +85,7 @@ LOCAL_NS_MAP = {
 }
 
 IGNORE_NS = {
-    "all", "the", "any", "which", "what", "my", "this", "that", "a", "some", "in",
+    "all", "each", "every", "the", "any", "which", "what", "my", "this", "that", "a", "some", "in",
     "for", "of", "to", "is", "not", "are", "and", "or", "pvc", "pvcs", "pod", "pods",
     "node", "nodes", "deployment", "deployments", "status", "health", "check", "get",
     "show", "has", "have", "had", "with", "without", "using", "uses", "does", "do"
@@ -1296,11 +1296,6 @@ async def api_reports_download(filename: str):
 
 
 def _fetch_report_charts() -> dict:
-    """
-    Query Prometheus for top-10 pod CPU and memory over 1d, 1w, 1m.
-    Returns a dict: { "cpu_1d": [...series...], "mem_1d": [...], ... }
-    Each series: { "label": "ns/pod", "values": [[ts, val], ...] }
-    """
     import time as _time
     from kubernetes.stream import stream as _k8s_stream
 

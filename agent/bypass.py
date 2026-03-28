@@ -56,6 +56,7 @@ BYPASSABLE_TOOLS = {
 # Note: They must ALSO be listed in BYPASSABLE_TOOLS above.
 UNCONDITIONAL_BYPASS = {
     "run_cluster_health",
+    "get_namespace_resource_summary",
     "get_pod_logs",
     "describe_pvc",
     "describe_pv",
