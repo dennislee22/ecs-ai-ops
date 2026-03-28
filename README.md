@@ -188,7 +188,7 @@ d. **Defaults in `config/config.py`**
    If a value is not provided via CLI or environment, the app falls back to the default specified in `config.py`.
 
 > **Summary:**  
-> **CLI > `config/settings.json > `env` > Defaults in `config/config.py`**
+> **CLI > `config/settings.json` > `env` > Defaults in `config/config.py`**
 
 Optional `env` configuration:
 
