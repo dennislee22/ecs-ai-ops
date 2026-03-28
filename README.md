@@ -84,7 +84,6 @@ ECS AI Ops Chatbot is powered by:
 ├── lancedb/                  # Vector DB
 ├── report/                   # Store healthcheck report(s) in PDF
 └── logs/                     # Store logs
-    └── app.log
 ```
 
 ---
@@ -223,7 +222,7 @@ python3 app.py --embed-dir  ~/models/nomic-embed-text-v1.5  # embeddings from lo
 ```python
 import os
 CDSW_APP_PORT=os.environ['CDSW_APP_PORT'] 
-os.system("python ecs-ai-ops/app.py --host 127.0.0.1 --port $CDSW_APP_PORT --model-dir ~/models/Qwen3-8B --embed-dir ~/models/nomic-embed-text-v1.5 > myapp.log")
+os.system("python ~/ECS-AI-Ops/app.py --host 127.0.0.1 --port $CDSW_APP_PORT --model-dir ~/models/Qwen3-8B --embed-dir ~/models/nomic-embed-text-v1.5 2>&1 > myapp.log")
 ```
 
 ---
