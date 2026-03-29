@@ -10,11 +10,11 @@ logger = logging.getLogger(__name__)
 
 _ALWAYS_INCLUDE = {
     "find_resource",
-    #"rag_search",
+    "get_pod_status",
 }
 
 _TABLE_NAME = "tool_index"
-_MIN_CONFIDENT = 1  # Allowed to succeed even if only 1 exact match is found
+_MIN_CONFIDENT = 1  # Allowed to succeed with min 1 match
 
 # ── Semantic Routing Settings ────────────────────────────────────────────────
 
