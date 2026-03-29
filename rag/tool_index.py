@@ -3,60 +3,53 @@ from __future__ import annotations
 import json
 import logging
 from typing import Any
-
 import numpy as np
+import os
 
 logger = logging.getLogger(__name__)
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-# Tools that must ALWAYS be included regardless of semantic score.
-# These are your catch-all / primary-dispatch tools.
 _ALWAYS_INCLUDE = {
     "kubectl_exec",    # catch-all kubectl fallback
     "find_resource",   # primary named-resource dispatcher
     "rag_search",      # knowledge base
 }
 
-# LanceDB table name — isolated from your doc/excel tables
 _TABLE_NAME = "tool_index"
-
-# Distance threshold for confidence check.
-# sentence-transformers cosine distance: 0.0 = identical, 2.0 = opposite.
-# Values below this are considered confident matches.
-# Calibrate by printing distances for a few test queries — good matches
-# are typically 0.2–0.5, poor matches 0.7+.
 _CONFIDENCE_THRESHOLD = 0.65
-
-# Minimum number of confident results before we trust semantic search.
-# If fewer than this pass the threshold, fall back to all tools.
 _MIN_CONFIDENT = 3
-
 
 # ── Embedding helper ─────────────────────────────────────────────────────────
 
 from sentence_transformers import SentenceTransformer
-import os
-import config.config as _cfg  # assume this always exists
-
-def _get_embedder():
-    # Read the model path from your config
-    model_name = getattr(_cfg, "EMBED_MODEL")
-
-    # Expand ~ if user provided a local path
-    model_name = os.path.expanduser(model_name)
-
-    # Load the embedder (works for local dirs or HF models)
-    return SentenceTransformer(model_name, trust_remote_code=True)
-
+import config.config as _cfg
 
 _embedder = None  # module-level singleton — loaded once on first use
 
-def _embed(text: str) -> list[float]:
+def _get_embedder():
     global _embedder
-    if _embedder is None:
-        _embedder = _get_embedder()
-    vec = _embedder.encode(text, normalize_embeddings=True)
+    if _embedder is not None:
+        return _embedder
+
+    model_name = getattr(_cfg, "EMBED_MODEL", None)
+    if not model_name:
+        raise ValueError("EMBED_MODEL must be set in config.config")
+
+    model_name = os.path.expanduser(model_name)
+    logger.info(f"[tool_index] Loading embedder from: {model_name}")
+
+    try:
+        _embedder = SentenceTransformer(model_name, trust_remote_code=True)
+    except Exception as e:
+        logger.error(f"[tool_index] Failed to load embedder: {e}", exc_info=True)
+        raise
+
+    return _embedder
+
+def _embed(text: str) -> list[float]:
+    embedder = _get_embedder()
+    vec = embedder.encode(text, normalize_embeddings=True)
     return vec.tolist()
 
 
