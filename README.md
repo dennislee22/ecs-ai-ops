@@ -266,7 +266,7 @@ curl -s -X POST http://localhost:9000/api/tool \
 |---|---|---|---|---|
 | GPU **(recommended)** | [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) | 8 | 32 GB | 25 GB |
 | CPU | [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) | 32 | 128 GB | — |
-| CPU only | [Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M | 32 | 128 GB | — |
+| CPU | [Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M | 32 | 128 GB | — |
 
 The application automatically detects available GPUs at startup and uses them if present. If no GPU is found, it falls back to CPU inference without any manual configuration.
 
