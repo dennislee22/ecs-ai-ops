@@ -1,27 +1,3 @@
-"""
-rag/tool_index.py
------------------
-Semantic tool routing via LanceDB.
-
-- Ingests all tool schemas as embeddings into a dedicated LanceDB table
-  ("tool_index") at every startup (always-fresh strategy).
-- At query time, embeds the user query and returns the top-k most
-  relevant tool schemas, always including mandatory fallback tools.
-- If semantic search confidence is poor (all distances above threshold),
-  falls back to returning all schemas so the LLM is never left blind.
-
-Usage
------
-    # startup (inside _lifespan, after init_db())
-    from rag.tool_index import ingest_tools, retrieve_tools
-
-    ingest_tools(all_tools_dict)          # dict of {name: metadata}
-
-    # per query (inside llm_node(), before apply_chat_template)
-    schemas = retrieve_tools(user_query, all_tool_schemas, top_k=8)
-    kw = {"add_generation_prompt": True, "tools": schemas}
-"""
-
 from __future__ import annotations
 
 import json
@@ -59,18 +35,18 @@ _MIN_CONFIDENT = 3
 
 # ── Embedding helper ─────────────────────────────────────────────────────────
 
-def _get_embedder():
-    """
-    Return the same sentence-transformers embedder your RAG stack uses.
-    Reads EMBED_MODEL from config so it stays in sync with the rest of the app.
-    """
-    try:
-        import config.config as _cfg
-        model_name = getattr(_cfg, "EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-    except Exception:
-        model_name = "sentence-transformers/all-MiniLM-L6-v2"
+from sentence_transformers import SentenceTransformer
+import os
+import config.config as _cfg  # assume this always exists
 
-    from sentence_transformers import SentenceTransformer
+def _get_embedder():
+    # Read the model path from your config
+    model_name = getattr(_cfg, "EMBED_MODEL")
+
+    # Expand ~ if user provided a local path
+    model_name = os.path.expanduser(model_name)
+
+    # Load the embedder (works for local dirs or HF models)
     return SentenceTransformer(model_name)
 
 
