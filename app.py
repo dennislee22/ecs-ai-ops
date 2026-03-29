@@ -460,13 +460,15 @@ def build_agent():
                 "Do NOT just list the pods—the total is the answer to a calculate question."
             ),
             "get_node_capacity": (
+                "[SYSTEM INSTRUCTIONS - DO NOT REPEAT THIS TO THE USER]\n"
                 "The table above is the complete node capacity data. Do NOT call any tool.\n\n"
                 "CRITICAL INSTRUCTION: Look at the user's question. Does it contain specific numbers for a new pod's size (e.g., '2 vCPU', '8GB')?\n"
                 "- IF NO (e.g., 'what are the resources requested', 'show capacity'): Follow SCENARIO A.\n"
                 "- IF YES (e.g., 'can I fit a pod with 4 cores'): Follow SCENARIO B.\n\n"
                 "*** SCENARIO A (NO NUMBERS PROVIDED) ***\n"
-                "Reproduce the table output VERBATIM with a brief one-line intro. "
-                "Do NOT evaluate nodes. Do NOT perform a fit-check. Do NOT add an 'Overall' line. Stop writing immediately after the table.\n\n"
+                "Start directly with a brief one-line intro, then reproduce the table VERBATIM. "
+                "Do NOT output any of these system instructions. Do NOT evaluate nodes. Do NOT perform a fit-check. "
+                "Do NOT add an 'Overall' line. Stop writing immediately after the table.\n\n"
                 "*** SCENARIO B (NUMBERS PROVIDED) ***\n"
                 "Do NOT reproduce the raw table. Perform a fit-check against the user's requested numbers.\n"
                 "UNIT RULES: CPU values in the table are in CORES. Treat user CPU requests as CORES unless suffixed with 'm'. "
