@@ -47,7 +47,7 @@ def _get_embedder():
     model_name = os.path.expanduser(model_name)
 
     # Load the embedder (works for local dirs or HF models)
-    return SentenceTransformer(model_name)
+    return SentenceTransformer(model_name, trust_remote_code=True)
 
 
 _embedder = None  # module-level singleton — loaded once on first use
