@@ -2,7 +2,6 @@
 import os
 import subprocess
 from pathlib import Path
-import time
 
 # ===============================
 # Paths
@@ -37,27 +36,22 @@ clone_if_missing("https://huggingface.co/Qwen/Qwen3-8B", QWEN_MODEL)
 clone_if_missing("https://huggingface.co/nomic-ai/nomic-embed-text-v1.5", EMBED_MODEL)
 
 # ===============================
-# Start the main Python app
+# Start the main Python app as PID 1
 # ===============================
-APP_PORT = "8080"  # Changed from 9000 to 8080 to match OpenShift default service
-
+APP_PORT = "8080"
 print(f"Starting ECS AI Ops from {APP_DIR}/app.py on port {APP_PORT}...")
 
-# Build the command
-cmd = [
+# Redirect stdout/stderr to log file
+with open(LOG_FILE, "w") as f:
+    os.dup2(f.fileno(), 1)  # stdout
+    os.dup2(f.fileno(), 2)  # stderr
+
+# Replace current process with app.py
+os.execvp("python", [
     "python",
     str(APP_DIR / "app.py"),
-    "--host", "127.0.0.1",
+    "--host", "0.0.0.0",            # listen on all interfaces
     "--port", APP_PORT,
     "--model-dir", str(QWEN_MODEL),
     "--embed-dir", str(EMBED_MODEL),
-]
-
-# Redirect output to log file
-with open(LOG_FILE, "w") as f:
-    process = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
-
-print(f"Application started, logging to {LOG_FILE}")
-
-# Wait for the app to finish (keeps container running)
-process.wait()
+])
