@@ -125,25 +125,6 @@ def retrieve_tools(
     all_schemas: list[dict],
     top_k: int = 8,
 ) -> list[dict]:
-    """
-    Return the most relevant tool schemas for user_query.
-
-    Strategy:
-    1. Embed user_query, ANN search tool_index table.
-    2. Filter results by confidence threshold.
-    3. If fewer than _MIN_CONFIDENT pass, fall back to all schemas.
-    4. Always inject _ALWAYS_INCLUDE tools on top of semantic results.
-
-    Parameters
-    ----------
-    user_query   : raw user message string
-    all_schemas  : full list of OpenAI-format tool schemas (built at startup)
-    top_k        : max tools to return from semantic search (before fallbacks)
-
-    Returns
-    -------
-    List of OpenAI-format tool schema dicts to pass to apply_chat_template.
-    """
     # Build a quick lookup: tool_name → full schema
     schema_map = {s["function"]["name"]: s for s in all_schemas}
 
