@@ -1,2 +1,2 @@
 #!/bin/bash
-exec python /opt/app-root/src/ECS-AI-Ops/app_starter.py
+exec python /opt/app-root/src/app_starter.py
