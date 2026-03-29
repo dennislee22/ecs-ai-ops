@@ -39,14 +39,16 @@ clone_if_missing("https://huggingface.co/nomic-ai/nomic-embed-text-v1.5", EMBED_
 # ===============================
 # Start the main Python app
 # ===============================
-print(f"Starting ECS AI Ops from {APP_DIR}/app.py on port 9000...")
+APP_PORT = "8080"  # Changed from 9000 to 8080 to match OpenShift default service
+
+print(f"Starting ECS AI Ops from {APP_DIR}/app.py on port {APP_PORT}...")
 
 # Build the command
 cmd = [
     "python",
     str(APP_DIR / "app.py"),
     "--host", "127.0.0.1",
-    "--port", "9000",
+    "--port", APP_PORT,
     "--model-dir", str(QWEN_MODEL),
     "--embed-dir", str(EMBED_MODEL),
 ]
