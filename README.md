@@ -60,6 +60,7 @@ ECS AI Ops Chatbot is powered by:
 │
 ├── tools/
 │   ├── __init__.py
+│   ├── tool_index.py         # Index K8s tools for LanceDB to speed up tool selection by LLM
 │   ├── tools_k8s.py          # K8s tools
 │   └── tools_metadata.py     # K8s tools metadata
 │
