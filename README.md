@@ -202,7 +202,6 @@ LOG_LEVEL=warning
 |---|---|---|
 | `KUBECONFIG_PATH` | Path to kubeconfig (blank = in-cluster) | ~/kubeconfig |
 | `LOG_LEVEL` | DEBUG shows full agentic loop trace | DEBUG |
-| `KUBECTL_ALLOW_WRITES` | Allow write operations via `kubectl_exec` | false |
 | `GGUF_N_CTX` | Context window size (GGUF / CPU mode only) | 32768 |
 | `GGUF_N_THREADS` | CPU threads for GGUF inference | all cores |
 
