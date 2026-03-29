@@ -17,6 +17,12 @@ QWEN_REPO = "https://huggingface.co/Qwen/Qwen3-8B"
 EMBED_REPO = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5"
 
 # -----------------------------
+# Ensure working directory
+# -----------------------------
+# Make sure the app runs relative to ECS-AI-Ops repo
+os.chdir(str(Path.home() / "ECS-AI-Ops"))
+
+# -----------------------------
 # Create models directory
 # -----------------------------
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
@@ -49,8 +55,8 @@ print(f"Starting app on port {PORT}, logging to {LOG_FILE}")
 with open(LOG_FILE, "w") as f:
     subprocess.run([
         "python", str(APP_PATH),
-        "--host", "0.0.0.0",   # container-friendly
+        "--host", "0.0.0.0",             # container-friendly
         "--port", PORT,
-        "--model-dir", str(QWEN_DIR),
-        "--embed-dir", str(EMBED_DIR)
+        "--model-dir", str(QWEN_DIR),    # absolute path
+        "--embed-dir", str(EMBED_DIR)    # absolute path
     ], stdout=f, stderr=subprocess.STDOUT)
