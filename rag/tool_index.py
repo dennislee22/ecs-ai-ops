@@ -148,7 +148,7 @@ def retrieve_tools(
         # Retrieve top_k + buffer so we have room after filtering
         results = (
             table.search(query_vec)
-.                .metric("cosine")
+                 .metric("cosine")
                  .limit(top_k + len(_ALWAYS_INCLUDE))
                  .to_pandas()
         )
