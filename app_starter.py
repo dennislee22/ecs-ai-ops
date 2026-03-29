@@ -1,62 +1,61 @@
+#!/usr/bin/env python3
 import os
 import subprocess
 from pathlib import Path
+import time
 
-# -----------------------------
-# Config
-# -----------------------------
-PORT = "9000"
-APP_PATH = Path.home() / "ECS-AI-Ops/app.py"
-MODELS_DIR = Path.home() / "models"
-QWEN_DIR = MODELS_DIR / "Qwen3-8B"
-EMBED_DIR = MODELS_DIR / "nomic-embed-text-v1.5"
-LOG_FILE = Path.home() / "cpu-qwen3-app.log"
+# ===============================
+# Paths
+# ===============================
+HOME_DIR = Path.home()             # /opt/app-root/src in S2I
+APP_DIR = HOME_DIR                 # repo root
+MODELS_DIR = HOME_DIR / "models"
+QWEN_MODEL = MODELS_DIR / "Qwen3-8B"
+EMBED_MODEL = MODELS_DIR / "nomic-embed-text-v1.5"
+LOG_FILE = HOME_DIR / "cpu-qwen3-app.log"
 
-QWEN_REPO = "https://huggingface.co/Qwen/Qwen3-8B"
-EMBED_REPO = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5"
+# ===============================
+# Ensure models directory exists
+# ===============================
+MODELS_DIR.mkdir(exist_ok=True)
 
-# -----------------------------
-# Ensure working directory
-# -----------------------------
-os.chdir(str(Path.home() / "ECS-AI-Ops"))
+# ===============================
+# Helper to clone repo if not exists
+# ===============================
+def clone_if_missing(repo_url, target_path):
+    if target_path.exists():
+        print(f"{target_path} already exists, skipping clone")
+        return
+    print(f"Cloning {repo_url} into {target_path}...")
+    subprocess.run(["git", "clone", repo_url, str(target_path)], check=True)
+    print(f"Cloned {repo_url} successfully")
 
-# -----------------------------
-# Create models directory
-# -----------------------------
-MODELS_DIR.mkdir(parents=True, exist_ok=True)
+# ===============================
+# Clone required models
+# ===============================
+clone_if_missing("https://huggingface.co/Qwen/Qwen3-8B", QWEN_MODEL)
+clone_if_missing("https://huggingface.co/nomic-ai/nomic-embed-text-v1.5", EMBED_MODEL)
 
-# -----------------------------
-# Clone repos if missing (wait for completion)
-# -----------------------------
-def clone_if_missing(repo_url, path):
-    if not path.exists():
-        print(f"Cloning {repo_url} into {path}")
-        subprocess.run(["git", "clone", repo_url, str(path)], check=True)
-        if not path.exists():
-            raise RuntimeError(f"Failed to clone {repo_url}")
-    else:
-        print(f"{path} already exists, skipping clone")
+# ===============================
+# Start the main Python app
+# ===============================
+print(f"Starting ECS AI Ops from {APP_DIR}/app.py on port 9000...")
 
-clone_if_missing(QWEN_REPO, QWEN_DIR)
-clone_if_missing(EMBED_REPO, EMBED_DIR)
+# Build the command
+cmd = [
+    "python",
+    str(APP_DIR / "app.py"),
+    "--host", "127.0.0.1",
+    "--port", "9000",
+    "--model-dir", str(QWEN_MODEL),
+    "--embed-dir", str(EMBED_MODEL),
+]
 
-# -----------------------------
-# Install Python dependencies
-# -----------------------------
-requirements_file = Path.home() / "ECS-AI-Ops/requirements.txt"
-if requirements_file.exists():
-    print(f"Installing Python dependencies...")
-    subprocess.run(["pip", "install", "--no-cache-dir", "-r", str(requirements_file)], check=True)
-
-# -----------------------------
-# Start the app
-# -----------------------------
-print(f"Starting app on port {PORT}, logging to {LOG_FILE}")
+# Redirect output to log file
 with open(LOG_FILE, "w") as f:
-    subprocess.run([
-        "python", str(APP_PATH),
-        "--host", "0.0.0.0",
-        "--port", PORT,
-        "--model-dir", str(QWEN_DIR),
-        "--embed-dir", str(EMBED_DIR)
-    ], stdout=f, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
+
+print(f"Application started, logging to {LOG_FILE}")
+
+# Wait for the app to finish (keeps container running)
+process.wait()
