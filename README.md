@@ -268,11 +268,11 @@ curl -s -X POST http://localhost:9000/api/tool \
 
 The application automatically detects available GPUs at startup and uses them if present. If no GPU is found, it falls back to CPU inference without any manual configuration.
 
-- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses typically complete in **5–30 secs**. Requires an NVIDIA GPU with at least 25 GB VRAM (e.g. A100, RTX 3090/4090).
+- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses typically complete in **5–30 secs**, depending on the query complexity. Requires an NVIDIA GPU with at least 25 GB VRAM (e.g. A100, RTX 3090/4090).
 
-- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses take **30 secs - x minutes**.
+- **CPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses take **30 secs - x minutes**, depending on the query complexity.
 
-- **CPU on baremetal only** — use **[Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF)**, specifically the **Q4_K_M** quantisation, via `llama-cpp-python`. This reduces memory footprint significantly and is the only practical option for CPU inference. Responses take **30 secs - x minutes**.
+- **CPU on baremetal only** — use **[Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF)**, specifically the **Q4_K_M** quantisation, via `llama-cpp-python`. This reduces memory footprint significantly and is the only practical option for CPU inference. Responses take **30 secs - x minutes**, depending on the query complexity.
 
 ---
 
