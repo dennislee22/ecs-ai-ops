@@ -31,6 +31,14 @@ _BLOCKED_VERBS = {
     "attach":       "attach is not supported",
     "proxy":        "proxy is not supported",
 }
+
+_NOT_RUNNING_WORDS = {
+    "notrunning", "unhealthy", "failed", "failing", 
+    "stuck", "broken", "down", "pending", "unknown"
+}
+
+_NOT_RUNNING_PHASES = ["Pending", "Failed", "Unknown"]
+
 _ALLOW_WRITES  = os.getenv("KUBECTL_ALLOW_WRITES", "false").lower() in ("1", "true", "yes")
 _ALLOW_DB_EXEC = os.getenv("ALLOW_DB_EXEC",        "true").lower()  in ("1", "true", "yes")
 
@@ -482,13 +490,6 @@ def get_pod_containers_resources(namespace: str = "all", search: str | None = No
 
 def get_pod_status(namespace: str = "all", search: str | None = None,
                    phase: str | None = None) -> str:
-    
-    # Define the missing variables directly inside the function scope
-    _NOT_RUNNING_WORDS = {
-        "not running", "unhealthy", "failed", "failing", 
-        "stuck", "broken", "down", "pending", "unknown"
-    }
-    _NOT_RUNNING_PHASES = ["Pending", "Failed", "Unknown"]
 
     try:
         phase_filter: str | None = None
