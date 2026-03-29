@@ -634,10 +634,12 @@ def build_agent():
                 "</tool_call>"
             )
 
-            # FIX: use semantic routing to select relevant tools instead of all schemas.
-            # For GGUF the schemas are injected as plain text into the system prompt,
-            # so we still benefit from a smaller tool list here.
             _selected_schemas = retrieve_tools(_user_q, tool_schemas, top_k=8)
+            _selected_names = [s["function"]["name"] for s in _selected_schemas]
+            _log_ag.info(f"[REQ:{req_id}] [llm_node/hf] semantic routing → {len(_selected_schemas)}/{len(tool_schemas)} tools selected: {', '.join(_selected_names)}")
+            
+            kw = {"add_generation_prompt": True, "tools": _selected_schemas}
+
             _log_ag.info(f"[REQ:{req_id}] [llm_node/gguf] semantic routing → {len(_selected_schemas)}/{len(tool_schemas)} tools selected")
 
             tools_json = json.dumps(_selected_schemas, indent=2)
