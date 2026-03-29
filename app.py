@@ -201,12 +201,15 @@ def _build_llm():
         if is_qwen3: _log_ag.info("[LLM] Qwen3 detected — native tool-calling via apply_chat_template")
 
         device_map = "auto" if config.NUM_GPU > 0 else "cpu"
-        #dtype = torch.bfloat16 if config.NUM_GPU > 0 else torch.float32
-        dtype = torch.bfloat16
+        dtype = torch.bfloat16 if config.NUM_GPU > 0 else torch.float32
 
         tokenizer = transformers.AutoTokenizer.from_pretrained(config.LLM_MODEL, trust_remote_code=True)
         model = transformers.AutoModelForCausalLM.from_pretrained(
-            config.LLM_MODEL, torch_dtype=dtype, device_map=device_map, trust_remote_code=True, use_cache=True
+            config.LLM_MODEL,
+            torch_dtype=dtype,
+            device_map=device_map,
+            trust_remote_code=True,
+            use_cache=config.NUM_GPU > 0   # disable KV cache on CPU
         )
         model.eval()
         _log_ag.info("[LLM] Model loaded")
@@ -326,7 +329,7 @@ def build_agent():
             else:
                 _ns_prefix = f"§NS_PREFIX§I mapped the keyword in your question and scoped this check to the `{detected_ns}` namespace.§END_NS§\n\n"
 
-        _tool_char_limit = 40000
+        _tool_char_limit = 40000 if config.NUM_GPU > 0 else 8000
         parts = []
         for i, tr in enumerate(tool_results, 1):
             body = tr.content if len(tr.content) <= _tool_char_limit else tr.content[:_tool_char_limit] + "\n...[truncated]"
