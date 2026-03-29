@@ -22,9 +22,7 @@ ECS AI Ops Chatbot is powered by:
 <img src="web/static/ecs-ai-arch.gif" width="600" />
 
 ---
-
 > ⚠️ **Note:** While the tooling is built on the Kubernetes Python SDK, the system prompt, tool selection logic, and multi-hop reasoning chains are highly curated for ECS and may not work correctly on other Kubernetes distributions with different storage or networking subsystems.
-
 ---
 
 ## Table of Contents
