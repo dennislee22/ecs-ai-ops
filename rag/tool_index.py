@@ -8,24 +8,36 @@ import os
 
 logger = logging.getLogger(__name__)
 
-# ── Constants ────────────────────────────────────────────────────────────────
-
 _ALWAYS_INCLUDE = {
-    "kubectl_exec",    # catch-all kubectl fallback
-    "find_resource",   # primary named-resource dispatcher
-    "rag_search",      # knowledge base
+    "find_resource",
+    #"rag_search",
 }
 
 _TABLE_NAME = "tool_index"
+_MIN_CONFIDENT = 1  # Allowed to succeed even if only 1 exact match is found
+
+# ── Semantic Routing Settings ────────────────────────────────────────────────
+
+# RECOMMENDED VALUES based on your active engine/hardware:
+#
+# 1. GPU / HuggingFace (High Compute / VRAM):
+#    _TOP_K = 12
+#    _CONFIDENCE_THRESHOLD = 0.70
+#
+# 2. CPU / GGUF (RAM / Context Limited):
+#    _TOP_K = 5
+#    _CONFIDENCE_THRESHOLD = 0.55
+#    (Strict filtering. Keeps the context window tiny to completely prevent OOM.
+
+_TOP_K = 8
 _CONFIDENCE_THRESHOLD = 0.65
-_MIN_CONFIDENT = 1  # <-- FIXED: Allow even a single highly confident match to succeed
 
 # ── Embedding helper ─────────────────────────────────────────────────────────
 
 from sentence_transformers import SentenceTransformer
 import config.config as _cfg
 
-_embedder = None  # module-level singleton — loaded once on first use
+_embedder = None
 
 def _get_embedder():
     global _embedder
@@ -49,7 +61,7 @@ def _get_embedder():
 
 def _embed(text: str, is_query: bool = False) -> list[float]:
     embedder = _get_embedder()
-    # <-- FIXED: Nomic-embed-text strictly expects a task prefix for user questions
+    # Nomic-embed-text strictly expects a task prefix for user questions
     final_text = f"search_query: {text}" if is_query else text
     vec = embedder.encode(final_text, normalize_embeddings=True)
     return vec.tolist()
@@ -62,7 +74,6 @@ def _tool_text(name: str, cfg: dict) -> str:
     Build the text that gets embedded for a tool.
     Prioritizes 'embed_keywords' if present for pure semantic signal.
     """
-    # <-- FIXED: Decouple retrieval (keywords) from execution (instructions)
     if "embed_keywords" in cfg:
         return f"{name}: {cfg['embed_keywords']}"
         
@@ -76,23 +87,13 @@ def _tool_text(name: str, cfg: dict) -> str:
 # ── Ingest ────────────────────────────────────────────────────────────────────
 
 def ingest_tools(all_tools: dict[str, dict]) -> None:
-    """
-    Drop and recreate the tool_index table in LanceDB with fresh embeddings.
-    Called once at startup (always-fresh strategy).
-
-    Parameters
-    ----------
-    all_tools : dict
-        Combined tool registry — {**K8S_TOOL_METADATA, **RAG_TOOLS}
-        Same dict you pass to build_agent().
-    """
     try:
         import lancedb
         import config.config as _cfg
 
         db = lancedb.connect(_cfg.LANCEDB_DIR)
 
-        # Always-fresh: drop existing table if present
+        # Drop existing table if present
         existing = db.table_names()
         if _TABLE_NAME in existing:
             db.drop_table(_TABLE_NAME)
@@ -113,15 +114,14 @@ def ingest_tools(all_tools: dict[str, dict]) -> None:
 
     except Exception as exc:
         logger.error(f"[tool_index] ingest_tools failed: {exc}", exc_info=True)
-        # Non-fatal — app will fall back to all tools if table is missing
-
 
 # ── Retrieve ──────────────────────────────────────────────────────────────────
 
 def retrieve_tools(
     user_query: str,
     all_schemas: list[dict],
-    top_k: int = 8,  # You can safely bump this up to 12 in app.py if needed!
+    top_k: int = _TOP_K,
+    confidence_threshold: float = _CONFIDENCE_THRESHOLD,
 ) -> list[dict]:
     # Build a quick lookup: tool_name → full schema
     schema_map = {s["function"]["name"]: s for s in all_schemas}
@@ -145,29 +145,27 @@ def retrieve_tools(
 
         query_vec = _embed(user_query, is_query=True)
 
-        # Retrieve top_k + buffer so we have room after filtering
         results = (
             table.search(query_vec)
-                 .metric("cosine")  # <-- FIXED: Tell LanceDB to use Cosine distance
+                 .metric("cosine")
                  .limit(top_k + len(_ALWAYS_INCLUDE))
                  .to_pandas()
         )
 
         # ── Confidence check ──────────────────────────────────────────────────
         # _distance is cosine distance (0 = identical, 2 = opposite)
-        confident = results[results["_distance"] < _CONFIDENCE_THRESHOLD]
+        confident = results[results["_distance"] < confidence_threshold]
 
         if len(confident) < _MIN_CONFIDENT:
             logger.info(
                 f"[tool_index] Low confidence ({len(confident)} results under threshold "
-                f"{_CONFIDENCE_THRESHOLD}) for query={user_query[:60]!r} — "
+                f"{confidence_threshold}) for query={user_query[:60]!r} — "
                 f"falling back to all {len(all_schemas)} tools"
             )
             return all_schemas
 
-        # ── Build final schema list ───────────────────────────────────────────
         selected_names  = set(confident["tool_name"].tolist())
-        selected_names |= always_names   # union with always-include set
+        selected_names |= always_names  
 
         selected_schemas = [schema_map[n] for n in selected_names if n in schema_map]
 
