@@ -94,11 +94,11 @@ IGNORE_NS = {
 
 # ── Semantic Routing Hardware Settings ───────────────────────────────────────
 
-# GGUF (CPU): Aggressive filtering. Saves RAM and boosts inference speed.
+# GGUF (CPU):
 _ROUTING_TOP_K_GGUF = 5
 _ROUTING_THRESHOLD_GGUF = 0.55
 
-# HuggingFace (GPU): Relaxed filtering. GPU handles larger contexts effortlessly.
+# HuggingFace (GPU):
 _ROUTING_TOP_K_HF = 7
 _ROUTING_THRESHOLD_HF = 0.65
 
