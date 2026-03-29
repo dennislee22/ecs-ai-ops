@@ -95,7 +95,8 @@ IGNORE_NS = {
 # ── Semantic Routing Hardware Settings ───────────────────────────────────────
 
 # GGUF (CPU):
-_ROUTING_TOP_K_GGUF = 5
+#_ROUTING_TOP_K_GGUF = 5
+_ROUTING_TOP_K_GGUF = 3
 _ROUTING_THRESHOLD_GGUF = 0.55
 
 # HuggingFace (GPU):
