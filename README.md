@@ -106,7 +106,7 @@ ECS AI Ops Chatbot is powered by:
 
 | Category | Tools |
 |---|---|
-| Pods | `get_pod_status`, `get_pod_logs`, `describe_pod`, `get_unhealthy_pods_detail`, `get_top_pods`, `get_pod_images`, `get_pod_tolerations`, `get_pod_resource_requests`, `get_pod_containers_resources`, `get_pod_storage`, `get_pods_using_resource` |
+| Pods | `get_pod_status`, `get_pod_logs`, `describe_pod`, `get_unhealthy_pods_detail`, `get_top_pods`, `get_pod_images`, `get_pod_tolerations`, `get_pod_containers_resources`, `get_pod_storage`, `get_pods_using_resource` |
 | Nodes | `get_node_info`, `get_top_nodes`, `get_node_capacity`, `get_gpu_info`, `get_node_labels`, `get_node_taints`, `get_pods_on_node` |
 | Events | `get_events` |
 | Workloads | `get_deployment`, `get_daemonset`, `get_statefulset`, `get_replicaset`, `get_adhoc_job_status`, `get_cronjob_status`, `get_hpa_status`, `get_pdb_status` |
