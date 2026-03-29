@@ -265,23 +265,22 @@ curl -s -X POST http://localhost:9000/api/tool \
 | Inference mode | Model | Min. CPU cores| Min. RAM | Min. VRAM |
 |---|---|---|---|---|
 | GPU **(recommended)** | [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) | 8 | 32 GB | 25 GB |
-| CPU | [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) | 64 | 128 GB | — |
-| CPU only | [Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M | 32 | 64 GB | — |
+| CPU | [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) | 32 | 128 GB | — |
+| CPU only | [Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M | 32 | 128 GB | — |
 
 The application automatically detects available GPUs at startup and uses them if present. If no GPU is found, it falls back to CPU inference without any manual configuration.
 
-- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses typically complete in **5–30 seconds**. Requires an NVIDIA GPU with at least 25 GB VRAM (e.g. A100, RTX 3090/4090).
+- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses typically complete in **5–30 secs**. Requires an NVIDIA GPU with at least 25 GB VRAM (e.g. A100, RTX 3090/4090).
 
-- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses take **several mins per query**.
+- **GPU (recommended)** — use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (bfloat16, HuggingFace Transformers). Responses take **30 secs - x minutes**.
 
-- **CPU on baremetal only** — use **[Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF)**, specifically the **Q4_K_M** quantisation, via `llama-cpp-python`. This reduces memory footprint significantly and is the only practical option for CPU inference. Responses take **several mins per query**.
+- **CPU on baremetal only** — use **[Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF)**, specifically the **Q4_K_M** quantisation, via `llama-cpp-python`. This reduces memory footprint significantly and is the only practical option for CPU inference. Responses take **30 secs - x minutes**.
 
 ---
 
 ## Security Notes
 
 - All typed K8s tools are **read-only** by design.
-- `kubectl_exec` is **read-only by default**.
 - Secret values are hidden by default — toggle in ⚙ Settings → Security. Preference persists per browser.
 - Restrict the env file: `chmod 600 env`
 
@@ -289,7 +288,7 @@ The application automatically detects available GPUs at startup and uses them if
 
 ## Demo
 
-| Inference using Nvidia GPU | Inference using CPU |
+| Inference using Nvidia GPU (Qwen3-8B) | Inference using CPU (Qwen3-8B-GGUF) |
 |---|---|
-| <img src="https://raw.githubusercontent.com/dennislee22/huge-assets/main/ECS-AI-Ops-assets/ecs-ai-ops-gpu.gif" width="380" /> | <img src="https://raw.githubusercontent.com/dennislee22/huge-assets/main/ECS-AI-Ops-assets/ecs-ai-ops-cpu.gif" width="380" /> |
+| <img src="https://raw.githubusercontent.com/dennislee22/huge-assets/main/ECS-AI-Ops-assets/ecs-ai-ops-gpu.gif" width="380" /> | <img src="https://raw.githubusercontent.com/dennislee22/huge-assets/main/ECS-AI-Ops-assets/ecs-ai-ops-gguf.gif" width="380" /> |
 
