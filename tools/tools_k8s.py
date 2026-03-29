@@ -4979,41 +4979,82 @@ def get_cluster_role_bindings() -> str:
     except Exception as e:
         return _k8s_err(e)
 
-def get_namespace_resource_summary(namespace: str) -> str:
+def get_namespace_resource_summary(namespace: str = "all") -> str:
     try:
-        pods = _core.list_namespaced_pod(namespace=namespace, limit=1000)
+        from kubernetes.client.rest import ApiException
+        
+        # 1. FIX: Handle the "all" namespace properly
+        is_all = namespace.lower() in ("all", "any", "")
+        if is_all:
+            pods_res = _core.list_pod_for_all_namespaces(limit=1000)
+            ns_label = "all namespaces"
+        else:
+            pods_res = _core.list_namespaced_pod(namespace=namespace, limit=1000)
+            ns_label = f"namespace '{namespace}'"
+            
     except ApiException as e:
         return f"[ERROR] {_safe_reason(e)}"
+    except Exception as e:
+        return f"[ERROR] {e}"
 
-    if not pods.items:
-        return f"No pods found in namespace '{namespace}'."
+    pods = pods_res.items
+    if not pods:
+        return f"No pods found in {ns_label}."
 
     total_cpu_req = total_cpu_lim = 0
     total_ram_req = total_ram_lim = 0.0
     table_rows = []
 
-    for pod in pods.items:
-        cpu_req = cpu_lim = 0
-        ram_req = ram_lim = 0.0
-
+    for pod in pods:
+        pod_ns = pod.metadata.namespace
+        pod_name = pod.metadata.name
+        
+        # 2. FIX: Sum standard application containers
+        app_cpu_req = app_cpu_lim = 0
+        app_ram_req = app_ram_lim = 0.0
         for c in pod.spec.containers or []:
             req = (c.resources.requests or {}) if c.resources else {}
             lim = (c.resources.limits or {}) if c.resources else {}
 
-            cpu_req += _parse_cpu_to_millicores(req.get("cpu", "0"))
-            cpu_lim += _parse_cpu_to_millicores(lim.get("cpu", "0"))
-            ram_req += _parse_mem_to_mib(req.get("memory", "0"))
-            ram_lim += _parse_mem_to_mib(lim.get("memory", "0"))
+            app_cpu_req += _parse_cpu_to_millicores(req.get("cpu", "0"))
+            app_cpu_lim += _parse_cpu_to_millicores(lim.get("cpu", "0"))
+            app_ram_req += _parse_mem_to_mib(req.get("memory", "0"))
+            app_ram_lim += _parse_mem_to_mib(lim.get("memory", "0"))
 
-        total_cpu_req += cpu_req
-        total_cpu_lim += cpu_lim
-        total_ram_req += ram_req
-        total_ram_lim += ram_lim
+        # 3. FIX: Find the maximum requested by any single init container
+        init_cpu_req = init_cpu_lim = 0
+        init_ram_req = init_ram_lim = 0.0
+        for c in pod.spec.init_containers or []:
+            req = (c.resources.requests or {}) if c.resources else {}
+            lim = (c.resources.limits or {}) if c.resources else {}
+            
+            init_cpu_req = max(init_cpu_req, _parse_cpu_to_millicores(req.get("cpu", "0")))
+            init_cpu_lim = max(init_cpu_lim, _parse_cpu_to_millicores(lim.get("cpu", "0")))
+            init_ram_req = max(init_ram_req, _parse_mem_to_mib(req.get("memory", "0")))
+            init_ram_lim = max(init_ram_lim, _parse_mem_to_mib(lim.get("memory", "0")))
 
-        table_rows.append(
-            f"| {pod.metadata.name} | {cpu_req or 0}m | {ram_req:.0f}Mi "
-            f"| {cpu_lim or 0}m | {ram_lim:.0f}Mi |"
-        )
+        # 4. FIX: Effective Pod Resources = max(init_max, app_sum)
+        pod_cpu_req = max(app_cpu_req, init_cpu_req)
+        pod_ram_req = max(app_ram_req, init_ram_req)
+        pod_cpu_lim = max(app_cpu_lim, init_cpu_lim)
+        pod_ram_lim = max(app_ram_lim, init_ram_lim)
+
+        total_cpu_req += pod_cpu_req
+        total_cpu_lim += pod_cpu_lim
+        total_ram_req += pod_ram_req
+        total_ram_lim += pod_ram_lim
+
+        # Dynamically add the namespace column if we are querying "all"
+        if is_all:
+            table_rows.append(
+                f"| {pod_ns} | {pod_name} | {pod_cpu_req}m | {pod_ram_req:.0f}Mi "
+                f"| {pod_cpu_lim}m | {pod_ram_lim:.0f}Mi |"
+            )
+        else:
+            table_rows.append(
+                f"| {pod_name} | {pod_cpu_req}m | {pod_ram_req:.0f}Mi "
+                f"| {pod_cpu_lim}m | {pod_ram_lim:.0f}Mi |"
+            )
 
     def _fmt_cpu(m):
         return "0m" if m == 0 else f"{m}m ({m/1000:.3f} cores)"
@@ -5021,17 +5062,29 @@ def get_namespace_resource_summary(namespace: str) -> str:
     def _fmt_ram(mib):
         return "0Mi" if mib == 0 else f"{mib:.0f}Mi ({mib/1024:.2f}Gi)"
 
-    return "\n".join([
-        "## **Note**: Init containers are excluded from totals.\n",
-        f"## Resource summary for namespace '{namespace}' ({len(pods.items)} pods)\n",
+    header = [
+        f"## Resource summary for {ns_label} ({len(pods)} pods)",
+        f"*(Calculated using K8s native scheduling math: `max(max(init_containers), sum(app_containers))`)*\n",
         f"- **Total CPU Requested**: {_fmt_cpu(total_cpu_req)}",
         f"- **Total CPU Limit**: {_fmt_cpu(total_cpu_lim)}",
         f"- **Total RAM Requested**: {_fmt_ram(total_ram_req)}",
         f"- **Total RAM Limit**: {_fmt_ram(total_ram_lim)}\n",
-        "**Per-pod breakdown:**\n",
-        "| POD | CPU REQ | RAM REQ | CPU LIM | RAM LIM |",
-        "|---|---|---|---|---|",
-    ] + table_rows)
+        "**Per-pod breakdown:**\n"
+    ]
+    
+    # Adjust markdown table headers based on scope
+    if is_all:
+        header.extend([
+            "| NAMESPACE | POD | CPU REQ | RAM REQ | CPU LIM | RAM LIM |",
+            "|---|---|---|---|---|---|"
+        ])
+    else:
+        header.extend([
+            "| POD | CPU REQ | RAM REQ | CPU LIM | RAM LIM |",
+            "|---|---|---|---|---|"
+        ])
+
+    return "\n".join(header + table_rows)
 
 def get_coredns_health() -> str:
     from kubernetes.stream import stream as _k8s_stream
