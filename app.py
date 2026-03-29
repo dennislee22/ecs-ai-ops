@@ -622,8 +622,15 @@ def build_agent():
         _max_new = max(512, config.MAX_NEW_TOKENS) if has_tool_results else max(1024, config.MAX_NEW_TOKENS // 2)
 
         # ── Extract user query for semantic tool routing ──────────────────────
-        #_user_q = next((m["content"] for m in chat_msgs if m["role"] == "user"), "")
         _user_q = next((m.content for m in msgs if isinstance(m, HumanMessage)), "")
+
+        # ── Unified Semantic Routing & Logging ────────────────────────────────
+        _selected_schemas = retrieve_tools(_user_q, tool_schemas, top_k=8)
+        _selected_names = [s["function"]["name"] for s in _selected_schemas]
+        _engine = "gguf" if tokenizer is None else "hf"
+        
+        _log_ag.info(f"[REQ:{req_id}] [llm_node/{_engine}] semantic routing → shortlisted {len(_selected_schemas)}/{len(tool_schemas)} tools: {', '.join(_selected_names)}")
+        _log_ag.info(f"[REQ:{req_id}] [llm_node/{_engine}] LLM is now evaluating the 'description' metadata of these {len(_selected_schemas)} shortlisted tools to make its selection...")
 
         if tokenizer is None:
             format_rules = (
@@ -633,14 +640,6 @@ def build_agent():
                 "{\"name\": \"tool_name\", \"arguments\": {\"arg_name\": \"value\"}}\n"
                 "</tool_call>"
             )
-
-            _selected_names = [s["function"]["name"] for s in _selected_schemas]
-            _log_ag.info(f"[REQ:{req_id}] [llm_node/gguf] semantic routing → shortlisted {len(_selected_schemas)}/{len(tool_schemas)} tools: {', '.join(_selected_names)}")
-            _log_ag.info(f"[REQ:{req_id}] [llm_node/gguf] LLM is now evaluating the 'description' metadata of these {len(_selected_schemas)} shortlisted tools to make its selection...")
-
-            kw = {"add_generation_prompt": True, "tools": _selected_schemas}
-
-            _log_ag.info(f"[REQ:{req_id}] [llm_node/gguf] semantic routing → {len(_selected_schemas)}/{len(tool_schemas)} tools selected")
 
             tools_json = json.dumps(_selected_schemas, indent=2)
             tool_system = f"{prompt}\n\nAvailable tools:\n{tools_json}{format_rules}"
@@ -659,11 +658,6 @@ def build_agent():
 
         else:
             import torch
-
-            _selected_schemas = retrieve_tools(_user_q, tool_schemas, top_k=8)
-            _selected_names = [s["function"]["name"] for s in _selected_schemas]
-            _log_ag.info(f"[REQ:{req_id}] [llm_node/hf] semantic routing → shortlisted {len(_selected_schemas)}/{len(tool_schemas)} tools: {', '.join(_selected_names)}")
-            _log_ag.info(f"[REQ:{req_id}] [llm_node/hf] LLM is now evaluating the 'description' metadata of these {len(_selected_schemas)} shortlisted tools to make its selection...")
 
             kw = {"add_generation_prompt": True, "tools": _selected_schemas}
             if _is_qwen3:
@@ -999,9 +993,10 @@ async def _lifespan(app: FastAPI):
     config.logger.info("[Agent] Pre-warming LLM…")
     get_agent()
 
-    # Ingest all tool schemas into LanceDB for semantic routing.
+    # FIX: ingest all tool schemas into LanceDB for semantic routing.
     # Must run AFTER get_agent() so K8S_TOOL_METADATA + RAG_TOOLS are fully loaded.
     # Always-fresh strategy: drops and recreates the tool_index table every startup
+    # so any tool description changes are automatically picked up.
     try:
         all_tools = {**K8S_TOOL_METADATA, **RAG_TOOLS}
         ingest_tools(all_tools)
