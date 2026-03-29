@@ -4027,26 +4027,47 @@ def generate_healthcheck_report() -> str:
 
 
     # ── 3. Resource Capacity ──────────────────────────────────────────────
-    R.append(section("3. Resource Capacity"))
+R.append(section("3. Resource Capacity"))
     try:
         all_ns = [ns.metadata.name for ns in _core.list_namespace().items]
         ns_data = []
         for ns in all_ns:
             try:
                 pods = _core.list_namespaced_pod(namespace=ns, limit=1000).items
-                cpu_req = mem_req = cpu_lim = mem_lim = 0
+                ns_cpu_req = ns_mem_req = ns_cpu_lim = ns_mem_lim = 0
+                
                 for pod in pods:
-                    for c in list(pod.spec.containers or []) + list(pod.spec.init_containers or []):
+                    # 1. Sum up resources for standard app containers
+                    app_cpu_req = app_mem_req = app_cpu_lim = app_mem_lim = 0
+                    for c in (pod.spec.containers or []):
                         req = (c.resources.requests or {}) if c.resources else {}
                         lim = (c.resources.limits   or {}) if c.resources else {}
-                        cpu_req += _parse_cpu_to_millicores(req.get("cpu",    "0"))
-                        mem_req += _parse_mem_to_mib(req.get("memory", "0"))
-                        cpu_lim += _parse_cpu_to_millicores(lim.get("cpu",    "0"))
-                        mem_lim += _parse_mem_to_mib(lim.get("memory", "0"))
+                        app_cpu_req += _parse_cpu_to_millicores(req.get("cpu", "0"))
+                        app_mem_req += _parse_mem_to_mib(req.get("memory", "0"))
+                        app_cpu_lim += _parse_cpu_to_millicores(lim.get("cpu", "0"))
+                        app_mem_lim += _parse_mem_to_mib(lim.get("memory", "0"))
+
+                    # 2. Find the MAXIMUM resource requested by any single init container
+                    init_cpu_req = init_mem_req = init_cpu_lim = init_mem_lim = 0
+                    for c in (pod.spec.init_containers or []):
+                        req = (c.resources.requests or {}) if c.resources else {}
+                        lim = (c.resources.limits   or {}) if c.resources else {}
+                        init_cpu_req = max(init_cpu_req, _parse_cpu_to_millicores(req.get("cpu", "0")))
+                        init_mem_req = max(init_mem_req, _parse_mem_to_mib(req.get("memory", "0")))
+                        init_cpu_lim = max(init_cpu_lim, _parse_cpu_to_millicores(lim.get("cpu", "0")))
+                        init_mem_lim = max(init_mem_lim, _parse_mem_to_mib(lim.get("memory", "0")))
+
+                    # 3. The Effective Pod Request is the max of the init max OR the app sum
+                    ns_cpu_req += max(app_cpu_req, init_cpu_req)
+                    ns_mem_req += max(app_mem_req, init_mem_req)
+                    ns_cpu_lim += max(app_cpu_lim, init_cpu_lim)
+                    ns_mem_lim += max(app_mem_lim, init_mem_lim)
+
                 if pods:
-                    ns_data.append((ns, len(pods), cpu_req, mem_req, cpu_lim, mem_lim))
+                    ns_data.append((ns, len(pods), ns_cpu_req, ns_mem_req, ns_cpu_lim, ns_mem_lim))
             except Exception:
                 pass
+                
         ns_data.sort(key=lambda x: x[2], reverse=True)
         R.append(subsection("Namespace Resource Requests vs Limits (top by CPU request)"))
         rows = []
