@@ -232,18 +232,18 @@ os.system("python ~/ECS-AI-Ops/app.py --host 127.0.0.1 --port $CDSW_APP_PORT --m
 ```dockerfile
 FROM registry.redhat.io/ubi8/python-312
 USER root
-RUN dnf install -y git-lfs clang make cmake && \
-    git lfs install && \
-    dnf clean all
+RUN dnf install -y git-lfs clang make cmake cairo pango gdk-pixbuf2 libffi harfbuzz freetype && git lfs install && dnf clean all
 ENV CC=clang
 ENV CXX=clang++
-USER 1001
 WORKDIR /opt/app-root/src
 COPY . .
-RUN pip install -r requirements.txt || true
-RUN pip install llama-cpp-python
+RUN rm -rf report && mkdir report
+RUN chmod 777 report
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir llama-cpp-python
+USER 1001
 EXPOSE 8080
-CMD ["python", "ocp_buildapp.py"]
+CMD ["python","ocp_buildapp.py"]
 ```
 
 2. Run this command to create a new build using your Dockerfile.
