@@ -4,10 +4,6 @@ from pathlib import Path
 import time
 import os
 
-report_dir = "/opt/app-root/src/report"
-os.makedirs(report_dir, exist_ok=True)
-os.chmod(report_dir, 0o777)
-
 HOME_DIR = Path.home()
 APP_DIR = HOME_DIR
 MODELS_DIR = HOME_DIR / "models"
