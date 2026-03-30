@@ -128,12 +128,12 @@ ECS AI Ops Chatbot is powered by:
 ## Example Queries
 
 - Is the cluster doing OK?
-- Find any resource named with vault in its name
+- Where is grafana pod?
 - List all pv that consume more than 80% of the allocated disk capacity
-- list nodes tainted with "control"
 - Which node has a GPU available and in use?
 - What storage classes are available in the cluster?
 - List all replicaset in cdp-keda namespace
+- Which nodes are ready and schedulable?
 - Show all warning events in cdp namespace
 - Decode cdp-private-installer-db-root-cert certificate in cdp ns
 - Show the top 3 pods with the highest CPU and RAM usage over the past 3 months across the cluster
@@ -243,7 +243,7 @@ WORKDIR /opt/app-root/src
 COPY . .
 RUN pip install -r requirements.txt || true
 EXPOSE 8080
-CMD ["python", "app_starter.py"]
+CMD ["python", "ocp_buildapp.py"]
 ```
 
 2. Run this command to create a new build using your Dockerfile.
