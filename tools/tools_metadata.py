@@ -1128,9 +1128,8 @@ K8S_TOOL_METADATA: dict = {
             "INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE are blocked. "
             "MANDATORY SCHEMA INSTRUCTION: To view the schema, structure, or columns of a specific table, "
             "you MUST use the query `DESCRIBE <table_name>`. Do not use `SELECT *` to find table schemas. "
-            "CUSTOM RULE: If a user asks for the 'namespace' of a 'user' (e.g., 'what is the namespace for user X'), "
-            "they are asking for database records, NOT Kubernetes namespaces. You MUST use exec_db_query to run a SELECT "
-            "query against the database (e.g., SELECT namespace FROM users WHERE username = 'X'). "
+            "MANDATORY ARGUMENT RULE: `namespace` is ALWAYS required. NEVER call this tool without it. "
+            "If you do not yet know the namespace, look it up first before calling this tool. "
             "WORKFLOW EXAMPLE: To access 'db-0' in namespace 'cmlwb1' and find tables in database 'sense': "
             "exec_db_query(namespace='cmlwb1', pod_name='db-0', container='db', database='sense', "
             "sql=\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'\") "
@@ -1152,7 +1151,15 @@ K8S_TOOL_METADATA: dict = {
             "\"SHOW TABLES\", \"SELECT user, host FROM mysql.user\", \"SHOW DATABASES\""
         ),
         "parameters":  {
-            "namespace": {"type": "string", "description": "Kubernetes namespace where the database pod runs."},
+            "namespace": {
+                "type":        "string",
+                "description": (
+                    "REQUIRED. Kubernetes namespace where the database pod runs. "
+                    "NEVER omit this argument. "
+                    "For user namespace resolution, this is the workbench namespace (e.g. 'cmlwb1'), "
+                    "NOT the user's personal namespace — the SQL query will return that."
+                ),
+            },
             "sql":       {
                 "type":        "string",
                 "description": (
@@ -1169,7 +1176,7 @@ K8S_TOOL_METADATA: dict = {
 
     "get_top_pods": {
         "fn":               get_top_pods,
-        "embed_keywords":   "top pods metrics cpu memory ram usage usage graph highest lowest live historical data trend performance",
+        "embed_keywords":   "top pods metrics cpu memory ram usage graph highest lowest live historical data trend performance",
         "description": (
             "Show live or historical CPU and memory usage for pods, ranked highest or lowest. "
             "ALWAYS emits both a ranked table AND a time-series graph in the output. "
@@ -1186,10 +1193,9 @@ K8S_TOOL_METADATA: dict = {
             "'lowest cpu pods', "
             "'which pods use the least memory over the last 6 hours', "
             "'show top 3 pods by cpu and memory'. "
-            "CRITICAL USER METRICS RULE: If the prompt asks for metrics for a specific user, REGARDLESS OF CAPITALIZATION (e.g. 'user dennis', 'user Dennis', 'user manas', 'for Dennis'), you MUST NOT call get_top_pods directly. "
-            "Step 1: Call `exec_db_query` with sql=\"SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>')\" to find their namespace (this ensures case-insensitivity). "
-            "Step 2: Call `get_top_pods` using ONLY the exact namespace string returned from the database (e.g. 'cmlwb1-user-1'), leave `search` empty, "
-            "and ALWAYS set `duration` (e.g. '1h' or the requested window) to fetch from Prometheus. "
+            "CRITICAL: If the query mentions a specific user by name (e.g. 'user Dennis', 'user manas'), "
+            "you MUST follow the USER NAMESPACE RESOLUTION rule in the system prompt before calling this tool. "
+            "Do NOT call this tool directly without first resolving the user's namespace via exec_db_query. "
             "Do NOT use get_top_nodes for ranked pod lists — use this tool. "
             "IMPORTANT: When the user asks for a graph or chart of top pods, "
             "ALWAYS set duration (e.g. '1h') to get the time-series data needed for the graph. "
@@ -1219,17 +1225,17 @@ K8S_TOOL_METADATA: dict = {
                 "default":     False,
                 "description": "When True, show lowest consumers first. Set True for: 'lowest pods', 'least cpu', 'bottom pods', 'minimum usage'.",
             },
-            "search":    {**_P_SEARCH, "description": "Optional pod name or namespace filter. CRITICAL: If you just ran a DB query to find a user's namespace, you MUST set search='' (empty string). Do NOT pass the username into this field."},
-            "duration": {
-                "type": "string",
-                "default": "1h",
-                "description": "Time window (e.g., '1h', '24h', '7d', '30d', '90d'). For months, use days (1 month = '30d', 3 months = '90d')."
+            "search":    {**_P_SEARCH, "description": "Optional pod name or namespace filter. If you resolved a user's namespace via exec_db_query, pass it via the namespace parameter instead — leave search empty."},
+            "duration":  {
+                "type":        "string",
+                "default":     "1h",
+                "description": "Time window (e.g., '1h', '24h', '7d', '30d', '90d'). For months, use days (1 month = '30d', 3 months = '90d').",
             },
             "memory_unit": {
-                "type": "string",
-                "enum": ["Mi", "Gi"],
-                "default": "Mi",
-                "description": "The unit for memory metrics. Default is Mi. If the user asks for GB or Gi, set this to Gi."
+                "type":        "string",
+                "enum":        ["Mi", "Gi"],
+                "default":     "Mi",
+                "description": "The unit for memory metrics. Default is Mi. If the user asks for GB or Gi, set this to Gi.",
             },
             "user_timezone": {
                 "type":        "string",
