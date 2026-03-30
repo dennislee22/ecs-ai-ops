@@ -303,7 +303,6 @@ curl -s -X POST http://localhost:8080/api/ask \
 curl -s -X POST http://localhost:8080/api/tool \
      -H "Content-Type: application/json" \
      -d '{"name":"get_pod_status","args":{"namespace":"cdp"}}'
-"
 ```
 
 ---
