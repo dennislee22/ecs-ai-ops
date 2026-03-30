@@ -3,7 +3,7 @@
 - An Agentic AI assistant for your live **Cloudera ECS (Embedded Container Service)** cluster (highly curated for Rancher K8s distro and Longhorn storage) — ask it anything about your cluster in plain English and get informative answers.
 - No need to memorize `kubectl` commands or deal with tedious YAML/JSON; only a basic understanding of Kubernetes is required.
 - Search for known ECS/Longhorn incidents, best practices, and troubleshooting guides via RAG (LanceDB).
-- Air-gap–friendly deployment, it runs fully within isolated environments with no external internet access.
+- Air-gap–friendly deployment, it runs fully within isolated environments with no external internet access. The LLM can be hosted on GPU or CPU, no code changes required. 
 
 ![Dashboard](https://raw.githubusercontent.com/dennislee22/huge-assets/main/ECS-AI-Ops-assets/ecs-ai-ops-dashboard1.png)
 
@@ -17,7 +17,7 @@
 
 ECS AI Ops Chatbot is powered by:
 
-- 🤖 **Self-hosted local LLM**: runs entirely on-premise with no external API calls or internet dependency. Use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (HuggingFace Transformers) on GPU. The LLM can be hosted on GPU or CPU, no code changes required. When no GPU is detected at startup, the application automatically falls back to CPU inference. `Qwen3-8B` is selected for its robust native tool-calling capabilities while remaining lightweight, helping conserve tokens. Alternatively, use **[Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M** (llama-cpp-python) on CPU.
+- 🤖 **Self-hosted local LLM**: runs entirely on-premise with no external API calls or internet dependency. Use **[Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B)** (HuggingFace Transformers) on GPU. When no GPU is detected at startup, the application automatically falls back to CPU inference. `Qwen3-8B` is selected for its robust native tool-calling capabilities while remaining lightweight, helping conserve tokens. Alternatively, use **[Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M** (llama-cpp-python) on CPU.
 - 🔁 **LangGraph agentic loop**: a ReAct agent that autonomously selects the right Kubernetes tools, executes them, observes the results, and chains further calls when needed before synthesising a final answer.
 - 📚 **LanceDB RAG**: cross-references live cluster data against your own runbooks, known-issue docs, and SOPs ingested locally into a LanceDB vector store.
 
