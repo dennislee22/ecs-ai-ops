@@ -230,13 +230,16 @@ os.system("python ~/ECS-AI-Ops/app.py --host 127.0.0.1 --port $CDSW_APP_PORT --m
 ```dockerfile
 FROM registry.redhat.io/ubi8/python-312
 USER root
-RUN yum install -y git-lfs && \
+RUN dnf install -y git-lfs clang make cmake && \
     git lfs install && \
-    yum clean all
+    dnf clean all
+ENV CC=clang
+ENV CXX=clang++
 USER 1001
 WORKDIR /opt/app-root/src
 COPY . .
 RUN pip install -r requirements.txt || true
+RUN pip install llama-cpp-python
 EXPOSE 8080
 CMD ["python", "ocp_buildapp.py"]
 ```
