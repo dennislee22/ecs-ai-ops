@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-import os
 import subprocess
 from pathlib import Path
 import time
+import os
+
+report_dir = "/opt/app-root/src/report"
+os.makedirs(report_dir, exist_ok=True)
+os.chmod(report_dir, 0o777)
 
 HOME_DIR = Path.home()
 APP_DIR = HOME_DIR
