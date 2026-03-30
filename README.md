@@ -39,6 +39,7 @@ ECS AI Ops Chatbot is powered by:
 - [Hardware Sizing](#hardware-sizing)
 - [Security Notes](#security-notes)
 - [Demo](#demo)
+- [Contact](#contact)
 
 ---
 
@@ -346,3 +347,8 @@ You may examine the time taken to execute each query, using GPU, CPU, and CPU (G
 |---|
 | <img src="https://raw.githubusercontent.com/dennislee22/huge-assets/main/ECS-AI-Ops-assets/ecs-ai-ops-gguf.gif" width="700" /> |
 
+---
+
+## Contact
+
+- LinkedIn: [dennislee22](https://www.linkedin.com/in/dennisleetw)
