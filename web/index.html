@@ -1191,8 +1191,8 @@ button{cursor:pointer;font-family:inherit}
         <div class="gl-ex-note">Retrieves all Longhorn settings related to snapshots, including recurring snapshot schedules, snapshot data integrity checks, and cleanup policies.</div>
         <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-storage"></div><div class="gl-ex-body"><span class="gl-ex-text">Is longhorn healthy?</span><button class="gl-copy-btn" onclick="glCopy(this,'Is longhorn healthy?')">copy</button></div></div>
         <div class="gl-ex-note">Checks all Longhorn nodes for disk pressure, overcommit ratio, schedulability, and node condition warnings such as missing packages or unloaded kernel modules.</div>
-        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-storage"></div><div class="gl-ex-body"><span class="gl-ex-text">Show longhorn node status for ecs-m-01.dlee.com</span><button class="gl-copy-btn" onclick="glCopy(this,'Show longhorn node status for ecs-m-01.dlee.com')">copy</button></div></div>
-        <div class="gl-ex-note">Returns Longhorn CRD status for a specific node: disk availability, scheduled vs maximum storage, overcommit percentage, and any active condition warnings.</div>
+        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">List all pv that consume more than 80% of the allocated disk capacity</span><button class="gl-copy-btn" onclick="glCopy(this,'List all pv that consume more than 80% of the allocated disk capacity')">copy</button></div></div>
+        <div class="gl-ex-note">Queries all Persistent Volumes in the cluster and filters those whose used disk capacity exceeds 80% of their allocated size.</div>
 
         <h3>Secrets &amp; Certificates</h3>
         <span class="gl-tag gl-tag-secret">SECRET</span>
@@ -1215,8 +1215,10 @@ button{cursor:pointer;font-family:inherit}
 
         <h3>Cloudera AI (CAI)</h3>
         <span class="gl-tag gl-tag-cluster">CLUSTER</span>
-        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Is user Dennis in cmlwb1 hogging resources for the past 20 mins?</span><button class="gl-copy-btn" onclick="glCopy(this,'Is user Dennis in cmlwb1 hogging resources for the past 20 mins?')">copy</button></div></div>
-        <div class="gl-ex-note">Queries Prometheus for per-pod CPU and memory usage in the cmlwb1 namespace over the last 20 minutes and identifies any pods owned by Dennis that are consuming disproportionate resources. Note: cmlwb1 is the namespace of the Cloudera AI (CAI) Workbench.</div>
+        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Is user Dennis in cmlwb1 hogging resources for the past 20 mins?</span><button class="gl-copy-btn" onclick="glCopy(this,'Is user Dennis in cmlwb1 hogging resources for the past 30 days?')">copy</button></div></div>
+        <div class="gl-ex-note">Queries Prometheus for per-pod CPU and memory usage in the CAI user namespace and identifies any pods owned by Dennis that are consuming resources. Note: cmlwb1 is the namespace of the Cloudera AI (CAI) Workbench.</div>
+        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Who is cmlwb1-user-1 in cmlwb1 ns?</span><button class="gl-copy-btn" onclick="glCopy(this,'Who is cmlwb1-user-1 in cmlwb1 ns?')">copy</button></div></div>
+        <div class="gl-ex-note">Resolves a CML Workbench namespace (e.g. cmlwb1-user-1) back to the owning username by querying the workbench database. Useful when you see a namespace in logs or resource listings and want to identify which user it belongs to.</div>
 
         <h3>Model Knowledge</h3>
         <span class="gl-tag gl-tag-howto">HOW-TO</span><span class="gl-tag gl-tag-general">GENERAL</span>
