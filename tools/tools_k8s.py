@@ -4492,9 +4492,6 @@ def generate_healthcheck_report() -> str:
         else:
             R.append(warn(f"Certificates: {_report_err(e)}"))
 
-    # Webhook FailurePolicy check removed — too noisy for report
-
-
     R.append('<hr/>')
     R.append('<p>This is your complete health check report. '
              'Ask the chatbot to drill into any flagged area for deeper diagnostics.</p>')
