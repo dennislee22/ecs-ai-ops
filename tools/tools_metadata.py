@@ -1113,7 +1113,7 @@ K8S_TOOL_METADATA: dict = {
 
     "exec_db_query": {
         "fn":               exec_db_query,
-        "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace information data queries",
+        "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace information data queries who is user owner username lookup resolve cmlwb1 workbench identity",
         "description": (
             "Execute a read-only SQL query inside a running database pod in a Kubernetes namespace. "
             "Supports MySQL, MariaDB, and PostgreSQL, auto-detected from the container image or name. "
@@ -1131,13 +1131,15 @@ K8S_TOOL_METADATA: dict = {
             "MANDATORY ARGUMENT RULE: `namespace` is ALWAYS required. NEVER call this tool without it. "
             "If you do not yet know the namespace, look it up first before calling this tool. "
             "CUSTOM RULE — USER/NAMESPACE RESOLUTION: "
-            "If the user provides a username and asks for their namespace (e.g. 'what namespace is user Dennis in'): "
-            "→ SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
-            "If the user provides a namespace and asks who owns it (e.g. 'who is cmlwb1-user-1'): "
-            "→ SELECT username FROM users WHERE LOWER(namespace)=LOWER('<the_namespace>') "
-            "The workbench namespace argument is always the prefix before '-user-' (e.g. 'cmlwb1-user-1' → 'cmlwb1'). "
-            "NEVER use SELECT namespace when the input is already a namespace string. "
-            "NEVER use SELECT username when the input is already a username string. "
+            "Detect the input type first before writing the SQL: "
+            "IF the input matches the pattern '*-user-N' (e.g. 'cmlwb1-user-1', 'cmlwb2-user-3') "
+            "→ it is a NAMESPACE string. Query: SELECT username FROM users WHERE LOWER(namespace)=LOWER('<the_namespace>') "
+            "→ workbench namespace argument = prefix before '-user-' (e.g. 'cmlwb1-user-1' → 'cmlwb1') "
+            "IF the input is a plain name without '-user-' (e.g. 'Dennis', 'manas') "
+            "→ it is a USERNAME string. Query: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
+            "→ workbench namespace argument is explicitly stated by the user (e.g. 'in cmlwb1') "
+            "NEVER use SELECT namespace when the input contains '-user-'. "
+            "NEVER use SELECT username when the input is a plain name without '-user-'. "
             "USER METRICS CHAIN: If the query asks for resource usage for a specific user "
             "(e.g. 'is user Dennis hogging resources', 'top pods for user manas'): "
             "→ Step 1: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
