@@ -48,25 +48,21 @@ ECS AI Ops Chatbot is powered by:
 ```
 ├── app.py                    # FastAPI server + LangGraph agent
 ├── ocp_buildapp.py           # Build and run in Openshift
-│
 ├── config/
 │   ├── __init__.py
 │   ├── config.py             # Configuration file
 │   ├── settings.json.        # Generated automatically by the chatbot according to ⚙️ Settings in the Chatbot UI
 │   ├── system_prompt.txt     # ECS AI Ops Chatbot system prompt
 │   └── kb_prompt.txt         # ECS KB Bot system prompt
-│
 ├── agent/
 │   ├── __init__.py
 │   ├── routing.py            # Namespace resolution + emergency fallback routing
 │   └── bypass.py             # LLM synthesis bypass for simple list queries
-│
 ├── tools/
 │   ├── __init__.py
 │   ├── tool_index.py         # Index K8s tools for LanceDB to speed up tool selection by LLM
 │   ├── tools_k8s.py          # K8s tools
 │   └── tools_metadata.py     # K8s tools metadata
-│
 ├── web/
 │   ├── index.html            # Main dashboard (served by FastAPI)
 │   └── static/
@@ -75,7 +71,6 @@ ECS AI Ops Chatbot is powered by:
 │       ├── longhorn-logo.svg
 │       ├── ibm-plex.css
 │       └── marked.min.js
-|
 ├── rag/
 │   ├── __init__.py
 │   ├── ingest.txt            # Ingest document
@@ -83,7 +78,6 @@ ECS AI Ops Chatbot is powered by:
 │   ├── store.py              # Store RAG
 │   └── sample     
 │       └── ECS_KB.xls        # Sample xls
-│
 ├── requirements.txt
 ├── lancedb/                  # Vector DB
 ├── report/                   # Store healthcheck report(s) in PDF
@@ -96,7 +90,7 @@ ECS AI Ops Chatbot is powered by:
 
 | Layer | Technology | Notes |
 |---|---|---|
-| LLM | HuggingFace Transformers / llama-cpp-python | **GPU:** [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) · **CPU:** [Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M |
+| LLM | HuggingFace Transformers / llama-cpp-python | **GPU/CPU:** [Qwen/Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B) · **CPU:** [Qwen/Qwen3-8B-GGUF](https://huggingface.co/Qwen/Qwen3-8B-GGUF) Q4_K_M |
 | Agent | LangGraph | ReAct loop: LLM selects tools → executes → observes → repeats or answers |
 | Embeddings | SentenceTransformers | `nomic-ai/nomic-embed-text-v1.5` (local) |
 | Vector DB | LanceDB (embedded) | Lightweight, works well with tabular (Arrow) + vector data together|
@@ -112,15 +106,15 @@ ECS AI Ops Chatbot is powered by:
 | Category | Tools |
 |---|---|
 | Pods | `get_pod_status`, `get_pod_logs`, `describe_pod`, `get_unhealthy_pods_detail`, `get_top_pods`, `get_pod_images`, `get_pod_tolerations`, `get_pod_containers_resources`, `get_pod_storage`, `get_pods_using_resource` |
+| Namespaces | `get_namespace_status`, `get_namespace_resource_summary` |
 | Nodes | `get_node_info`, `get_top_nodes`, `get_node_capacity`, `get_gpu_info`, `get_node_labels`, `get_node_taints`, `get_pods_on_node` |
-| Events | `get_events` |
 | Workloads | `get_deployment`, `get_daemonset`, `get_statefulset`, `get_replicaset`, `get_adhoc_job_status`, `get_cronjob_status`, `get_hpa_status`, `get_pdb_status` |
 | Storage | `get_pvc_status`, `describe_pvc`, `get_persistent_volumes`, `describe_pv`, `get_pv_usage`, `get_storage_classes`, `describe_sc`, `get_longhorn_settings`, `get_longhorn_node_status` |
 | Networking | `get_service`, `get_ingress`, `get_endpoints`, `get_network_policy_status`, `get_ingress_traffic`, `get_coredns_health` |
 | Cluster & Health | `run_cluster_health`, `get_cluster_version`, `get_control_plane_status`, `get_certificate_status`, `get_webhook_health`, `find_resource`, `get_crds` |
 | Config | `get_configmap_list`, `get_secret_list`, `get_resource_quotas`, `get_limit_ranges` |
 | RBAC | `get_serviceaccounts`, `get_cluster_role_bindings` |
-| Namespaces | `get_namespace_status`, `get_namespace_resource_summary` |
+| Events | `get_events` |
 | Database | `exec_db_query` — read-only SQL inside DB pods (MySQL/PostgreSQL) |
 
 ---
@@ -153,7 +147,7 @@ ECS AI Ops Chatbot is powered by:
 git clone https://huggingface.co/Qwen/Qwen3-8B ~/models/Qwen3-8B
 ```
 
-##### Qwen3-8B-GGUF (only on bare-metal server)
+##### Qwen3-8B-GGUF
 ```bash
 git clone https://huggingface.co/Qwen/Qwen3-8B-GGUF ~/models/Qwen3-8B-GGUF
 ```
@@ -252,7 +246,7 @@ CMD ["python", "ocp_buildapp.py"]
 oc new-build https://github.com/dennislee22/ECS-AI-Ops --name=ecs-ai-app --strategy=docker --dockerfile="$(cat Dockerfile)"
 ```
 
-3. After the build is completed, create a app pod.
+3. After the build is completed, create the app pod.
 ```bash
 oc new-app ecs-ai-app
 ```
