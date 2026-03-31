@@ -1200,7 +1200,7 @@ K8S_TOOL_METADATA: dict = {
 
     "get_top_pods": {
         "fn":               get_top_pods,
-        "embed_keywords":   "top pods metrics cpu memory ram usage usage graph highest lowest live historical data trend performance",
+        "embed_keywords":   "top pods metrics workbench workspace user cpu memory ram usage usage graph highest lowest live historical data trend performance",
         "description": (
             "Show live or historical CPU and memory usage for pods, ranked highest or lowest. "
             "ALWAYS emits both a ranked table AND a time-series graph in the output. "
