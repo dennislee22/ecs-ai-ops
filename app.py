@@ -180,11 +180,7 @@ def _load_system_prompt() -> str:
         "## MULTI-TOOL ORCHESTRATION & LOGIC CHAINS\n"
         "When diagnosing, chain your tools together logically without asking the user for permission:\n"
         "* Broad cluster health: Call `run_cluster_health(show_all=\"True\")`\n"
-        "* Known issues: Call `rag_search` FIRST. If the KB is empty or missing docs, relay that exact message. NEVER fabricate known issues.\n"
-        "* Pod crashing / OOMKilled / CrashLoopBackOff: \n"
-        "  → Step 1: `get_unhealthy_pods_detail`\n"
-        "  → Step 2: `rag_search(query=\"<error> <component>\")`\n"
-        "  → Step 3: `kubectl_exec` for recent events.\n"
+        "If the KB is empty or missing docs, relay that exact message. NEVER fabricate known issues.\n"
         "* Credential questions: ALWAYS start with `get_secret_list`. Only if secrets return nothing useful, fall back to `exec_db_query`.\n"
         "* DB Dialect Failures: If `exec_db_query` returns 'does not exist' / 'relation' / 'unknown table', IMMEDIATELY call the tool again with the other dialect (PostgreSQL vs MySQL).\n"
         "* Certificate & SSL questions: ALWAYS call BOTH `get_secret_list` AND `get_configmap_list` in the same step using `filter_keys=[\"tls\", \"cert\", \"certs\", \"certificate\", \"crt\", \"pem\", \"key\", \"ca\", \"ssl\", \"x509\"]`. Certificates can be stored in either resource, so you must check both to give a complete answer.\n"
@@ -399,7 +395,7 @@ def build_agent():
         _EXEMPT_TOOLS = {
             "get_coredns_health", "get_node_info", "get_gpu_info", "get_node_capacity", "run_cluster_health",
             "get_pv_usage", "get_persistent_volumes", "find_resource", "get_crds", "get_pods_on_node",
-            "get_node_resource_requests", "rag_search", "exec_db_query", "kubectl_exec", "get_longhorn_settings",
+            "get_node_resource_requests", "exec_db_query", "kubectl_exec", "get_longhorn_settings",
             "get_node_labels", "get_node_taints", "get_storage_classes", "get_cluster_version", "get_longhorn_node_status",
         }
 
