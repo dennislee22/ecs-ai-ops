@@ -1064,8 +1064,8 @@ K8S_TOOL_METADATA: dict = {
             "This applies to ALL phrasings: 'which pods', 'any pods', 'pods restarted more than N times', "
             "'struggling to start', 'not running', 'crashing' — always one bullet per pod. "
             "Each bullet must include: namespace/pod-name, phase, restart count, and cause/reason. "
-            "After reviewing output: if a pod shows OOMKilled or CrashLoopBackOff, "
-            "immediately call rag_search with the error and component name to check known fixes."
+            #"After reviewing output: if a pod shows OOMKilled or CrashLoopBackOff, "
+            #"immediately call rag_search with the error and component name to check known fixes."
         ),
         "parameters":  {"namespace": _P_NS},
     },
