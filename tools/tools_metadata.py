@@ -5,7 +5,7 @@ from tools.tools_k8s import (
     get_pvc_status, get_cluster_version, get_storage_classes, get_endpoints,
     get_node_capacity, get_persistent_volumes, get_service, get_ingress, describe_pv,
     get_configmap_list, get_secret_list, get_resource_quotas, get_limit_ranges,
-    get_serviceaccounts, get_cluster_role_bindings, get_namespace_status,
+    get_serviceaccounts, get_cluster_role_bindings, get_namespace_status, get_top_pod_requests,
     get_pod_tolerations, run_cluster_health, get_replicaset, get_crds, get_longhorn_node_status,
     get_namespace_resource_summary, get_pod_images, get_unhealthy_pods_detail,
     get_coredns_health, get_pv_usage, find_resource, get_pod_containers_resources, get_cronjob_status,
@@ -1195,6 +1195,65 @@ K8S_TOOL_METADATA: dict = {
             "pod_name":  {"type": "string", "default": "", "description": "Optional: specific DB pod name (e.g., 'db-0'). Leave empty to auto-detect the first running DB pod in the namespace."},
             "database":  {"type": "string", "default": "", "description": "Optional: database/schema name. Leave empty to use the value auto-discovered from the pod's environment."},
             "container": {"type": "string", "default": "", "description": "Optional: container name inside the pod (e.g., 'db'). Required for multi-container pods if the DB container is not the first. If the tool errors with 'available containers: ...', set this to the DB container name."},
+        },
+    },
+
+"get_top_pod_requests": {
+        "fn":               get_top_pod_requests,
+        "embed_keywords":   "top pods requests allocation reserved metrics workbench workspace user cpu memory ram graph highest lowest historical trend",
+        "description": (
+            "Show live or historical CPU and memory REQUESTS for pods, ranked highest or lowest. "
+            "This checks resource allocation (limits/requests), NOT real-time active usage. "
+            "ALWAYS emits both a ranked table AND a time-series graph in the output. "
+            "When duration is empty: fetches current requests directly from the Kubernetes API. "
+            "When duration is set: queries Prometheus (kube-state-metrics) for request data over that period. "
+            "Use for queries like: "
+            "'top 10 pods by cpu requests', "
+            "'which pods requested the most memory in the past 20d', "
+            "'show me cpu request graph for top 3 pods', "
+            "'top pods for memory requests over the last 1 hour', "
+            "'lowest cpu request pods'. "
+            "CRITICAL USER METRICS RULE: If the prompt asks for metrics for a specific user, call exec_db_query first to get the namespace. "
+            "When the user asks for BOTH cpu and memory requests, set sort_by='both'."
+        ),
+        "parameters":  {
+            "namespace": _P_NS,
+            "limit":     {
+                "type":        "integer",
+                "default":     10,
+                "description": "Number of pods to return. Extract from user question — 'top 5' → 5, 'top 3' → 3. Default 10.",
+            },
+            "sort_by":   {
+                "type":        "string",
+                "default":     "cpu",
+                "description": (
+                    "Sort metric: 'cpu' (default), 'memory', or 'both'. "
+                    "Extract from user question: 'cpu' → 'cpu', 'memory'/'ram'/'mem' → 'memory', "
+                    "'cpu and memory'/'both' → 'both'."
+                ),
+            },
+            "ascending": {
+                "type":        "boolean",
+                "default":     False,
+                "description": "When True, show lowest requesters first. Set True for: 'lowest pods', 'least cpu requested'.",
+            },
+            "search":    {**_P_SEARCH, "description": "Optional pod name or namespace filter. CRITICAL: If you just ran a DB query to find a user's namespace, you MUST set search='' (empty string). Do NOT pass the username into this field."},
+            "duration": {
+                "type": "string",
+                "default": "1h",
+                "description": "Time window (e.g., '1h', '24h', '7d', '20d')."
+            },
+            "memory_unit": {
+                "type": "string",
+                "enum": ["Mi", "Gi"],
+                "default": "Mi",
+                "description": "The unit for memory metrics. Default is Mi."
+            },
+            "user_timezone": {
+                "type":        "string",
+                "default":     "UTC",
+                "description": "User's IANA timezone. Auto-injected from browser.",
+            },
         },
     },
 
