@@ -1116,7 +1116,7 @@ K8S_TOOL_METADATA: dict = {
 
     "exec_db_query": {
         "fn":               exec_db_query,
-        "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup resolve workbench workspace identity resources metrics usage information",
+        "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup workbench workspace resources metrics usage consume",
         "description": (
             "Execute a read-only SQL query inside a running database pod in a Kubernetes namespace. "
             "Supports MySQL, MariaDB, and PostgreSQL, auto-detected from the container image or name. "
@@ -1149,11 +1149,11 @@ K8S_TOOL_METADATA: dict = {
             "NEVER truncate the input string in the SQL WHERE clause — use it in full. "
             "NEVER use SELECT namespace when the input contains '-user-'. "
             "NEVER use SELECT username when the input has no '-user-'. "
-            "USER METRICS CHAIN: If the query asks for resource usage for a specific user "
-            "(e.g. 'is user Dennis hogging resources', 'top pods for user manas'): "
-            "→ Step 1: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
-            "→ Step 2: Call get_top_pods(namespace=<result>, duration=<requested window or '1h'>, search='') "
-            "NEVER pass the username into get_top_pods search — use the namespace returned from the DB. "
+            "USER METRICS CHAIN: If the query asks for resource usage for a specific user (e.g. 'is user Dennis hogging resources'): "
+            "YOU MUST CALL `exec_db_query` FIRST. DO NOT SKIP THIS STEP. DO NOT CALL `get_top_pods` YET. "
+            "You must execute this exact SQL: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
+            "WAIT for the database to return the namespace. ONLY AFTER you receive the database result may you call `get_top_pods` using the returned namespace. "
+            "NEVER pass the username into get_top_pods search. "
             "WORKFLOW EXAMPLE: To access 'db-0' in namespace 'cmlwb1' and find tables in database 'sense': "
             "exec_db_query(namespace='cmlwb1', pod_name='db-0', container='db', database='sense', "
             "sql=\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'\") "

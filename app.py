@@ -1071,7 +1071,8 @@ async def _lifespan(app: FastAPI):
     config.logger.info(f"  LLM      : {config.LLM_MODEL}")
     config.logger.info(f"  Embed    : {config.EMBED_MODEL}")
     config.logger.info(f"  GPU      : {config.NUM_GPU} GPU(s)")
-    config.logger.info(f"  Tools    : {len(K8S_TOOL_METADATA) + len(RAG_TOOLS)} total tools registered")
+    #config.logger.info(f"  Tools    : {len(K8S_TOOL_METADATA) + len(RAG_TOOLS)} total tools registered")
+    config.logger.info(f"  Tools    : {len(K8S_TOOL_METADATA)} total tools registered")
     config.logger.info(f"  LanceDB  : {config.LANCEDB_DIR}")
     config.logger.info("=" * 60)
 
