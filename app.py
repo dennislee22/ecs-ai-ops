@@ -366,7 +366,8 @@ def _extract_namespace(text: str) -> str:
     return "all"
 
 def build_agent():
-    all_tools = {**K8S_TOOL_METADATA, **RAG_TOOLS}
+    #all_tools = {**K8S_TOOL_METADATA, **RAG_TOOLS}
+    all_tools = K8S_TOOL_METADATA
     tool_schemas = [_registry_to_openai_schema(n, c) for n, c in all_tools.items()]
     tool_names = [s["function"]["name"] for s in tool_schemas]
     _log_ag.info(f"[build_agent] {len(tool_schemas)} tools: {tool_names}")
@@ -1089,7 +1090,8 @@ async def _lifespan(app: FastAPI):
     # Always-fresh strategy: drops and recreates the tool_index table every startup
     # so any tool description changes are automatically picked up.
     try:
-        all_tools = {**K8S_TOOL_METADATA, **RAG_TOOLS}
+        #all_tools = {**K8S_TOOL_METADATA, **RAG_TOOLS}
+        all_tools = K8S_TOOL_METADATA
         ingest_tools(all_tools)
         config.logger.info(f"[tool_index] Ingested {len(all_tools)} tools into LanceDB ✓")
     except Exception as e:
