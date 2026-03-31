@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 _ALWAYS_INCLUDE = {
     "find_resource",
     "get_pod_status",
+    "exec_db_query",
 }
 
 _TABLE_NAME = "tool_index"
@@ -70,10 +71,6 @@ def _embed(text: str, is_query: bool = False) -> list[float]:
 # ── Text to embed for each tool ───────────────────────────────────────────────
 
 def _tool_text(name: str, cfg: dict) -> str:
-    """
-    Build the text that gets embedded for a tool.
-    Prioritizes 'embed_keywords' if present for pure semantic signal.
-    """
     if "embed_keywords" in cfg:
         return f"{name}: {cfg['embed_keywords']}"
         
