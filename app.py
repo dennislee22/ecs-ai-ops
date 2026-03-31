@@ -511,12 +511,12 @@ def build_agent():
             synthesis_prompt = (
                 f"Question: {original_question}\n\n"
                 f"Tool Results:\n{combined}\n"
-                "EVALUATE the tool results above. Do they contain the correct data to answer the user's question?\n"
-                "- If the data is correct/sufficient: Write the final plain-text answer right now. DO NOT start your response with 'YES' or any preamble. Answer the user directly.\n"
-                "- If the data is missing/incorrect: Output a new <tool_call> to try a different tool.\n"
+                "EVALUATE the tool results above. Do they completely answer the user's original question?\n"
+                "- If YES: Write the final plain-text answer right now. DO NOT start your response with 'YES' or any preamble. Answer the user directly.\n"
+                "- If NO (e.g., the result is just a prerequisite like finding a namespace, and you still need to check metrics or status): Output a new <tool_call> to continue the investigation. DO NOT tell the user that 'additional steps are required'. You are the AI agent—DO THE STEPS.\n"
                 "CRITICAL GUARDRAILS:\n"
                 "1. If a tool result field is empty, 'None', or '-', it means NO data exists for that specific attribute. Do NOT assume the tool failed or that more data exists elsewhere.\n"
-                "2. NEVER call a tool that you have already used in this conversation. If you have already used the necessary tools, you MUST synthesize the final answer immediately using the data you have, even if some fields are empty."
+                "2. NEVER call a tool that you have already used in this conversation. If you have already used all necessary tools, synthesize the final answer immediately."
             )
 
         return [HumanMessage(content=_ns_prefix + synthesis_prompt)]
