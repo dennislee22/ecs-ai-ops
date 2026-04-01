@@ -1118,13 +1118,14 @@ K8S_TOOL_METADATA: dict = {
         "fn":               exec_db_query,
         "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup workbench resources metrics usage consume",
         "description": (
+            "CRITICAL GUARDRAIL: IF THE USER ASKS ABOUT 'REQUESTS', 'LIMITS', 'SESSIONS', OR 'JOBS' FOR A USER, YOU MUST NEVER CALL THIS TOOL! "
+            "ABORT AND CALL `get_cml_session_request` INSTEAD! This tool is ONLY for active usage or general SQL queries. 🛑\n\n"
             "Execute a read-only SQL query inside a running database pod in a Kubernetes namespace. "
             "For multi-container pods, set container='db' to target the correct database container. "
             "Credentials (username, password, database) are automatically discovered from the pod's environment. "
             "Use for querying database contents, user accounts, table data, or schema inspection. "
             "READ-ONLY ENFORCEMENT: Only SELECT, SHOW, DESCRIBE, EXPLAIN are allowed. "
             "MANDATORY SCHEMA INSTRUCTION: If PostgreSQL, use `DESCRIBE <table_name>` to view schemas. "
-            "TOOL INSTRUCTION: If the user asks about CPU or Memory REQUESTS (e.g., 'List all sessions with cpu and mem requested by user xxx in asd workbench', 'Show cpu and ram requested by user yyy in qwe workspace'), DO NOT CALL THIS TOOL. Call `get_cml_session_request` directly! "
             "If the user asks for active resource USAGE (e.g., 'RAM or memory usage for user Manas', 'CPU usage for user Manas'): "
             "→ Step 1: Call exec_db_query to get their namespace: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
             "→ Step 2: Wait for the result, then call `get_top_pods` using that namespace. "
