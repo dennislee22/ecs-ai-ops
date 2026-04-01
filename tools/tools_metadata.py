@@ -1152,7 +1152,12 @@ K8S_TOOL_METADATA: dict = {
                 "description": "Read-only SQL query to execute.",
             },
             "pod_name":  {"type": "string", "default": "", "description": "Optional: specific DB pod name."},
-            "database":  {"type": "string", "default": "", "description": "Optional: database/schema name."},
+            #"database":  {"type": "string", "default": "", "description": "Optional: database/schema name."},
+            "database":  {
+                "type": "string", 
+                "default": "", 
+                "description": "Optional: exact database name. CRITICAL: ALWAYS leave this empty (\"\") so the system can auto-detect the database from the pod's environment, UNLESS the user explicitly names the database in their prompt (e.g., 'in the sense database'). NEVER guess the database name from the namespace!"
+            },
             "container": {"type": "string", "default": "", "description": "Optional: container name inside the pod."},
         },
     },
