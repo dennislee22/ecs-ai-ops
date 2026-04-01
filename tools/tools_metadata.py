@@ -1210,9 +1210,10 @@ K8S_TOOL_METADATA: dict = {
             "CRITICAL USER METRICS RULE (USAGE ONLY): If the prompt asks for active USAGE metrics for a specific user (e.g. 'user dennis' or 'user manas'), YOU MUST NOT CALL THIS TOOL DIRECTLY. "
             "Step 1: Call `exec_db_query` using the main workbench namespace (e.g. namespace='cmlwb1') and execute sql=\"SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>')\". "
             "Step 2: WAIT for the DB result. Call `get_top_pods` using ONLY the exact namespace string returned from the database (e.g. namespace='cmlwb1-user-1'). Leave `search` empty, "
-            "and ALWAYS set `duration` (e.g. '1h' or the requested window) to fetch from Prometheus. "
-            "NEVER pass the username into the get_top_pods search field — use the namespace returned from the DB.\n\n"
-            "CRITICAL ARGUMENT RULE: If the user asks for 'RAM', 'MEM', or 'MEMORY', you MUST explicitly set the `sort_by` argument to 'memory'. Do NOT rely on the default CPU sorting!"
+            "and ALWAYS set `duration` (e.g. '1h' or the requested window) to fetch from Prometheus.\n\n"
+            "🚨 CRITICAL ARGUMENT CHECKLIST - YOU MUST OBEY THESE: 🚨\n"
+            "1. NAMESPACE: You MUST pass the exact namespace returned by the database into the `namespace` parameter! NEVER let it default to 'all' or empty when querying a user!\n"
+            "2. SORTING: If the user asks for 'RAM', 'MEM', or 'MEMORY', you MUST set `sort_by='memory'`. If they ask for 'RESOURCES', set `sort_by='both'`. NEVER let it lazily default to 'cpu'!"
         ),
         "parameters":  {
             "namespace": _P_NS,
@@ -1226,9 +1227,10 @@ K8S_TOOL_METADATA: dict = {
                 "default":     "cpu",
                 "description": (
                     "CRITICAL: The metric to sort by. Default is 'cpu'. "
-                    "IF THE USER ASKS FOR 'RAM', 'MEM', OR 'MEMORY', YOU MUST SET THIS TO 'memory'. "
-                    "IF THE USER ASKS FOR 'RESOURCES' (e.g. 'resources usage'), YOU MUST SET THIS TO 'both'. "
-                    "Extract from user question: 'cpu' → 'cpu', 'memory'/'ram' → 'memory', 'resources'/'cpu and memory'/'both' → 'both'."
+                    "You MUST evaluate the user's prompt carefully: "
+                    "1. IF 'cpu and memory' OR 'resources' → YOU MUST SET TO 'both' "
+                    "2. IF 'memory' OR 'ram' ONLY → YOU MUST SET TO 'memory' "
+                    "3. IF 'cpu' ONLY → set to 'cpu'"
                 ),
             },
             "ascending": {
@@ -1255,7 +1257,7 @@ K8S_TOOL_METADATA: dict = {
             },
         },
     },
-    
+
     "get_top_nodes": {
         "fn":               get_top_nodes,
         "embed_keywords":   "top nodes metrics cpu memory ram disk io read write throughput usage graph highest lowest live historical data trend performance",
