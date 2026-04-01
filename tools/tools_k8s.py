@@ -1954,7 +1954,8 @@ def _get_top_pods_prometheus(namespace: str, limit: int, sort_by: str,
 
     # 2. Inject the dynamic {rate_window} into the CPU PromQL
     cpu_promql = f'sum by (pod, namespace) (rate(container_cpu_usage_seconds_total{{{base_filter}}}[{rate_window}])) * 1000'
-    mem_promql = f'sum by (pod, namespace) (container_memory_working_set_bytes{{{base_filter}}}) / {mem_divisor}'
+    #mem_promql = f'sum by (pod, namespace) (container_memory_working_set_bytes{{{base_filter}}}) / {mem_divisor}'
+    mem_promql = f'sum by (pod, namespace) (max_over_time(container_memory_working_set_bytes{{{base_filter}}}[{rate_window}])) / {mem_divisor}'
 
     prom_pod, prom_ns, prom_container = _find_prometheus_pod()
     if not prom_pod:
