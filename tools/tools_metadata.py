@@ -1211,44 +1211,50 @@ K8S_TOOL_METADATA: dict = {
             "Step 1: Call `exec_db_query` using the main workbench namespace (e.g. namespace='cmlwb1') and execute sql=\"SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>')\". "
             "Step 2: WAIT for the DB result. Call `get_top_pods` using ONLY the exact namespace string returned from the database (e.g. namespace='cmlwb1-user-1'). Leave `search` empty, "
             "and ALWAYS set `duration` (e.g. '1h' or the requested window) to fetch from Prometheus. "
-            "NEVER pass the username into the get_top_pods search field — use the namespace returned from the DB."
+            "NEVER pass the username into the get_top_pods search field — use the namespace returned from the DB.\n\n"
+            "CRITICAL ARGUMENT RULE: If the user asks for 'RAM', 'MEM', or 'MEMORY', you MUST explicitly set the `sort_by` argument to 'memory'. Do NOT rely on the default CPU sorting!"
         ),
         "parameters":  {
             "namespace": _P_NS,
             "limit":     {
                 "type":        "integer",
                 "default":     10,
-                "description": "Number of pods to return. Default 10.",
+                "description": "Number of pods to return. Extract from user question — 'top 5' → 5, 'top 3' → 3. Default 10.",
             },
             "sort_by":   {
                 "type":        "string",
                 "default":     "cpu",
-                "description": "Sort metric: 'cpu' (default), 'memory', or 'both'. Extract from user question.",
+                "description": (
+                    "CRITICAL: The metric to sort by. Default is 'cpu'. "
+                    "IF THE USER ASKS FOR 'RAM', 'MEM', OR 'MEMORY', YOU MUST EXPLICITLY SET THIS TO 'memory'! "
+                    "Extract from user question: 'cpu' → 'cpu', 'memory'/'ram' → 'memory', 'cpu and memory'/'both' → 'both'."
+                ),
             },
             "ascending": {
                 "type":        "boolean",
                 "default":     False,
-                "description": "When True, show lowest consumers first.",
+                "description": "When True, show lowest consumers first. Set True for: 'lowest pods', 'least cpu', 'bottom pods', 'minimum usage'.",
             },
-            "search":    {**_P_SEARCH, "description": "Optional pod name or namespace filter. CRITICAL: If you just ran a DB query to find a user's namespace, you MUST set search='' (empty string)."},
+            "search":    {**_P_SEARCH, "description": "Optional pod name or namespace filter. CRITICAL: If you just ran a DB query to find a user's namespace, you MUST set search='' (empty string). Do NOT pass the username into this field."},
             "duration": {
                 "type": "string",
                 "default": "1h",
-                "description": "Time window (e.g., '1h', '24h', '7d', '30d')."
+                "description": "Time window (e.g., '1h', '24h', '7d', '30d', '60d', '90d'). For months, use days (1 month = '30d', 2 months = '60d')."
             },
             "memory_unit": {
                 "type": "string",
                 "enum": ["Mi", "Gi"],
                 "default": "Mi",
-                "description": "The unit for memory metrics. Default is Mi."
+                "description": "The unit for memory metrics. Default is Mi. If the user asks for GB or Gi, set this to Gi."
             },
             "user_timezone": {
                 "type":        "string",
                 "default":     "UTC",
-                "description": "User's IANA timezone. Auto-injected from browser.",
+                "description": "User's IANA timezone. Auto-injected from browser — do not set manually.",
             },
         },
     },
+
     "get_top_nodes": {
         "fn":               get_top_nodes,
         "embed_keywords":   "top nodes metrics cpu memory ram disk io read write throughput usage graph highest lowest live historical data trend performance",
