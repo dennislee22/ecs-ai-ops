@@ -1129,7 +1129,6 @@ K8S_TOOL_METADATA: dict = {
             "If the user asks for active resource USAGE (e.g., 'RAM or memory usage for user Manas', 'CPU usage for user Manas'): "
             "→ Step 1: Call exec_db_query to get their namespace: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
             "→ Step 2: Wait for the result, then call `get_top_pods` using that namespace. "
-            "CRITICAL: For USAGE, you MUST call `get_top_pods` in Step 2. DO NOT call `get_cml_session_request`! "
             "CUSTOM RULE — USER/NAMESPACE RESOLUTION: "
             "IF the input contains '-user-' (e.g. 'cmlwb1-user-1'): "
             "→ exec_db_query(namespace='cmlwb1', sql=\"SELECT username FROM users WHERE LOWER(namespace)=LOWER('cmlwb1-user-1')\") "
