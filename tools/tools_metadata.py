@@ -1124,7 +1124,7 @@ K8S_TOOL_METADATA: dict = {
             "Use for querying database contents, user accounts, table data, or schema inspection. "
             "READ-ONLY ENFORCEMENT: Only SELECT, SHOW, DESCRIBE, EXPLAIN are allowed. "
             "MANDATORY SCHEMA INSTRUCTION: If PostgreSQL, use `DESCRIBE <table_name>` to view schemas. "
-            "If the user asks about CPU or Memory REQUESTS (e.g., 'List all sessions with cpu and mem requested by user xxx in asd workbench', 'Show cpu and ram requested by user yyy in qwe workspace'), DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` directly! "
+            "TOOL INSTRUCTION: If the user asks about CPU or Memory REQUESTS (e.g., 'List all sessions with cpu and mem requested by user xxx in asd workbench', 'Show cpu and ram requested by user yyy in qwe workspace'), DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` directly! "
             "If the user asks for active resource USAGE (e.g., 'RAM or memory usage for user Manas', 'CPU usage for user Manas'): "
             "→ Step 1: Call exec_db_query to get their namespace: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
             "→ Step 2: Wait for the result, then call `get_top_pods` using that namespace. "
@@ -1165,7 +1165,7 @@ K8S_TOOL_METADATA: dict = {
 
     "get_workbench_top_requests": {
         "fn":               get_workbench_top_requests,
-        "embed_keywords":   "top pods request requests allocation reserved metrics workbench workbench user cpu memory ram graph highest lowest historical trend",
+        "embed_keywords":   "top pods requested request requests allocation reserved metrics workbench workbench user cpu memory ram graph highest lowest historical trend",
         "description": (
             "Query the workbench's Postgres 'sense' database to find the top historical CPU and memory requests for workloads (dashboards) over a specific time period. "
             "Use this when the user explicitly asks for top CPU or memory 'requests' or 'limits' over the past X days/hours for a workbench or a specific user. "
