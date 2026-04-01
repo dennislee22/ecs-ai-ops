@@ -1119,8 +1119,8 @@ K8S_TOOL_METADATA: dict = {
         "embed_keywords":   "database db usage sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup workbench resources metrics consume",
         "description": (
             "🛑 CRITICAL - USAGE VS REQUESTS 🛑\n"
-            "- IF USER ASKS ABOUT 'REQUESTS', 'LIMITS', 'SESSIONS': DO NOT CALL THIS TOOL! Abort and call `get_cml_session_request` instead!\n"
-            "- IF USER ASKS ABOUT ACTIVE 'USAGE' FOR A SPECIFIC USER (e.g. 'RAM usage for Dennis'): YOU MUST CALL THIS TOOL FIRST to find their namespace.\n"
+            "- IF USER ASKS ABOUT 'REQUESTS', 'LIMITS', 'SESSIONS', OR 'DASHBOARDS': DO NOT CALL THIS TOOL! Abort and call `get_cml_session_request` instead!\n"
+            "- IF USER ASKS ABOUT ACTIVE 'USAGE' FOR A SPECIFIC USER (e.g. 'resources usage for Dennis', 'RAM usage'): YOU MUST CALL THIS TOOL FIRST to find their namespace.\n"
             "  → Call exec_db_query with namespace='cmlwb1' (or whatever the main workbench namespace is). NEVER pass the user's namespace (like 'cmlwb1-user-1') to this tool!\n"
             "  → Execute this exact SQL: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>')\n"
             "  → WAIT for the database to return the namespace (e.g. 'cmlwb1-user-1'), then call `get_top_pods` using that exact namespace.\n\n"
@@ -1161,7 +1161,9 @@ K8S_TOOL_METADATA: dict = {
         "fn":               get_cml_session_request,
         "embed_keywords":   "session pods request limits allocation workbench workspace user cpu memory ram graph highest lowest historical trend",
         "description": (
-            "🛑 CRITICAL: This tool is ONLY for resource REQUESTS, LIMITS, or SESSIONS. If the user asks for active USAGE, DO NOT USE THIS TOOL. Call `get_top_pods` instead! 🛑\n\n"
+            "🛑 CRITICAL: REJECT THIS TOOL IF THE USER ASKS FOR 'USAGE' (e.g., 'resources usage', 'cpu usage'). "
+            "If the prompt contains the word 'usage', DO NOT USE THIS TOOL. You must call `exec_db_query` to start the usage chain! "
+            "This tool is STRICTLY for 'requests', 'limits', or 'sessions'. 🛑\n\n"
             "Query the workbench's Postgres 'sense' database to find the top historical CPU and memory requests for workloads (dashboards) over a specific time period. "
             "Use this when the user explicitly asks for top CPU or memory 'requests' or 'limits' over the past X days/hours for a workbench/workspace or a specific user. "
             "This checks resource requests recorded directly in the CML database tables, NOT active Prometheus usage.\n\n"
@@ -1186,7 +1188,7 @@ K8S_TOOL_METADATA: dict = {
             "duration": {
                 "type": "string",
                 "default": "30d",
-                "description": "Time window to look back (e.g., '20d', '7d', '1h', '2w'). Extracts directly from user query."
+                "description": "Time window to look back (e.g., '20d', '7d', '1h', '10w'). Extracts directly from user query."
             },
             "search": {
                 "type": "string",
