@@ -137,13 +137,11 @@ def _find_prometheus_pod() -> tuple[str | None, str | None, str]:
         if p.status.phase != "Running":
             continue
         n = p.metadata.name.lower()
-        # Priority 1: standalone helm-installed prometheus-server
         if "prometheus-server" in n and "operator" not in n:
             cnames    = [c.name for c in (p.spec.containers or [])]
             container = ("prometheus-server" if "prometheus-server" in cnames
                          else (cnames[0] if cnames else "prometheus-server"))
             return p.metadata.name, p.metadata.namespace, container
-        # Priority 2: operator-managed statefulset (keep first match as candidate)
         if operator_candidate is None and "prometheus-operator" in n and n.endswith("-prometheus-0"):
             cnames = [c.name for c in (p.spec.containers or [])]
             container = "prometheus" if "prometheus" in cnames else (cnames[0] if cnames else "prometheus")
@@ -395,44 +393,6 @@ def get_pod_tolerations(namespace: str = "all", pod_name: str | None = None,
     except Exception as e:
         return _k8s_err(e)
 
-#def get_pod_resource_requests(namespace: str = "all", search: str | None = None) -> str:
-#    try:
-#        pods = _list_pods(namespace)
-#        if not pods:
-#            return f"No pods found in namespace '{namespace}'."
-#        filtered = _filter_pods(pods, search)
-#        lines = [
-#            _ns_header("Pod Resource Requests", namespace, search),
-#            "| NAMESPACE | POD | CONTAINER | CPU_REQ | CPU_LIM | MEM_REQ | MEM_LIM | ATTACHED GPU |",
-#            "|---|---|---|---|---|---|---|---|",
-#        ]
-#        for pod in sorted(filtered, key=lambda p: (p.metadata.namespace, p.metadata.name)):
-#            ns, podn = pod.metadata.namespace, pod.metadata.name
-#            attached_gpu = _get_gpu_requests(pod)
-#            cpu_req_total_m = cpu_lim_total_m = mem_req_total_mi = mem_lim_total_mi = 0
-#            for c in pod.spec.containers or []:
-#                req = c.resources.requests or {}
-#                lim = c.resources.limits   or {}
-#                cpu_req = req.get("cpu", "0")
-#                cpu_lim = lim.get("cpu", "0")
-#                cpu_req_m = cpu_req if cpu_req.endswith("m") else f"{int(float(cpu_req)*1000)}m"
-#                cpu_lim_m = cpu_lim if cpu_lim.endswith("m") else f"{int(float(cpu_lim)*1000)}m"
-#                mem_req_mi = _to_mebibytes(req.get("memory", "0"))
-#                mem_lim_mi = _to_mebibytes(lim.get("memory", "0"))
-#                cpu_req_total_m  += int(cpu_req_m.rstrip("m"))
-#                cpu_lim_total_m  += int(cpu_lim_m.rstrip("m"))
-#                mem_req_total_mi += int(mem_req_mi.rstrip("Mi"))
-#                mem_lim_total_mi += int(mem_lim_mi.rstrip("Mi"))
-#                lines.append(f"| `{ns}` | `{podn}` | `{c.name}` | {cpu_req_m} | {cpu_lim_m} "
-#                              f"| {mem_req_mi} | {mem_lim_mi} | {attached_gpu} |")
-#            lines.append(f"| `{ns}` | `{podn}` | **TOTAL** | {cpu_req_total_m}m | {cpu_lim_total_m}m "
-#                         f"| {mem_req_total_mi}Mi | {mem_lim_total_mi}Mi | {attached_gpu} |")
-#        return "\n".join(lines)
-#    except ApiException as e:
-#        return _api_error(e)
-#    except Exception as e:
-#        return _k8s_err(e)
-
 def get_pod_containers_resources(namespace: str = "all", search: str | None = None) -> str:
     try:
         pods = _list_pods(namespace)
@@ -655,8 +615,6 @@ def get_pod_logs(namespace: str = "all", search: str | None = None,
                 entry = (f"### `{ns_name}/{pod_name}`{clabel}\n```\n{logs}\n```" if logs.strip()
                          else f"### `{ns_name}/{pod_name}`{clabel}\n_No logs available._")
             except (ApiException, Exception) as e:
-                # ApiException(status=0) = RKE2 WebSocket handshake error on REST log endpoint
-                # Fall back to streaming exec
                 is_ws_err = (isinstance(e, ApiException) and e.status == 0) or \
                             ('Handshake' in str(e) or '-+-+' in str(e))
                 if is_ws_err:
@@ -740,7 +698,6 @@ def describe_pod(pod_name: str = "", namespace: str = "all", search: str | None 
             lines.append("Volumes:")
             for v in pod.spec.volumes:
                 vd = v.to_dict()
-                # Find the first non-None, non-name field — that is the actual volume type
                 vtype = next((k for k, val in vd.items() if k != "name" and val is not None), "unknown")
                 detail = ""
                 if v.secret:
@@ -1642,13 +1599,12 @@ def _enrich_cml_usernames(namespaces: set) -> dict:
     
     for base_ns in base_namespaces:
         try:
-            # Query the users table in the base workbench namespace
             out = exec_db_query(namespace=base_ns, sql="SELECT namespace, username FROM users", pod_name="db-0")
             if "[ERROR]" in out or "(Query returned no rows.)" in out:
                 continue
                 
             lines = out.splitlines()
-            # Find the Markdown table separator line (e.g., '---|---')
+
             sep_idx = next((i for i, line in enumerate(lines) if line.startswith("---") and "|" in line), -1)
             
             if sep_idx != -1:
@@ -1701,11 +1657,9 @@ def get_cml_session_request(namespace: str, limit: int = 10, sort_by: str = "cpu
     
     out = exec_db_query(namespace=namespace, sql=sql, database="sense")
     
-    # Error handling
     if "[ERROR]" in out or "(Query returned no rows.)" in out:
         return out
         
-    # Parse the output to generate the graph JSON and a clean Markdown table
     lines = out.splitlines()
     data_start = 0
     for i, line in enumerate(lines):
@@ -1733,7 +1687,6 @@ def get_cml_session_request(namespace: str, limit: int = 10, sort_by: str = "cpu
         search_text = f" matching `{search}`" if search else ""
         return f"No requests found in `{namespace}`{search_text} over the last {duration}."
 
-    # 1. Build the clean, terminal-style Markdown Table
     col_ns = max(len("NAMESPACE"), max((len(r[0]) for r in parsed_rows), default=0))
     col_user = max(len("USER"), max((len(r[1]) for r in parsed_rows), default=0))
     col_wl = max(len("WORKLOAD"), max((len(r[2]) for r in parsed_rows), default=0))
@@ -1825,7 +1778,6 @@ def get_top_pods(namespace: str = "all", limit: int = 5, sort_by: str = "cpu",
     filter_note    = f" matching `{search}`" if search else ""
     tz_label       = user_timezone if user_timezone != "UTC" else "UTC"
 
-    # Pass the new arguments down to the historical Prometheus function
     if duration:
         return _get_top_pods_prometheus(
             namespace=namespace, limit=limit, sort_by=sort_by,
@@ -1893,7 +1845,6 @@ def get_top_pods(namespace: str = "all", limit: int = 5, sort_by: str = "cpu",
     col_ns  = max(len("NAMESPACE"), max(len(r[0]) for r in rows))
     col_pod = max(len("POD"),       max(len(r[1]) for r in rows))
     
-    # Update the table header to use the dynamic unit
     hdr_row = f"{'NAMESPACE':<{col_ns}}  {'POD':<{col_pod}}  {'CPU(m)':>9}  {f'MEMORY({mem_label})':>12}"
     sep     = "-" * len(hdr_row)
     lines   = [header, "```", hdr_row, sep]
@@ -1934,7 +1885,6 @@ def _get_top_pods_prometheus(namespace: str, limit: int, sort_by: str,
     scope          = f"namespace `{namespace}`" if namespace != "all" else "all namespaces"
     filter_note    = f" matching `{search}`" if search else ""
 
-    # 1. Use the new helper to do ALL the math, formatting, and capping in one line!
     p = _parse_prom_duration(duration, user_timezone, max_days=90)
     
     # Extract variables from helper for easy access
@@ -1954,7 +1904,6 @@ def _get_top_pods_prometheus(namespace: str, limit: int, sort_by: str,
 
     # 2. Inject the dynamic {rate_window} into the CPU PromQL
     cpu_promql = f'sum by (pod, namespace) (rate(container_cpu_usage_seconds_total{{{base_filter}}}[{rate_window}])) * 1000'
-    #mem_promql = f'sum by (pod, namespace) (container_memory_working_set_bytes{{{base_filter}}}) / {mem_divisor}'
     mem_promql = f'sum by (pod, namespace) (max_over_time(container_memory_working_set_bytes{{{base_filter}}}[{rate_window}])) / {mem_divisor}'
 
     prom_pod, prom_ns, prom_container = _find_prometheus_pod()
@@ -1998,7 +1947,6 @@ def _get_top_pods_prometheus(namespace: str, limit: int, sort_by: str,
 
     def _run_query(promql: str):
         enc = urllib.parse.quote(promql, safe="")
-        # Force the step exactly using the helper's calculated values
         url = f"{api_base}/query_range?query={enc}&start={start_ts}&end={end_ts}&step={step}"
         raw = _exec(f"curl -s --max-time 60 '{url}'", large=True)
         if not raw:
@@ -2103,7 +2051,6 @@ def _get_top_pods_prometheus(namespace: str, limit: int, sort_by: str,
             for ns_v, pod_v, peak_v, low_v in mem_rows:
                 lines.append(f"{ns_v:<{col_ns}}  {pod_v:<{col_pod}}  {peak_v:>11.1f}{mem_unit_label}  {low_v:>11.1f}{mem_unit_label}")
             
-            # Print cap msg unconditionally at the very end of the memory table
             lines.append("")
             lines.append("  ⚠️ Note: Historical queries are safely capped at 90d to protect Prometheus.")
                 
@@ -2158,7 +2105,6 @@ def _get_top_pods_prometheus(namespace: str, limit: int, sort_by: str,
     for ns_v, pod_v, peak_v, low_v in rows:
         lines.append(f"{ns_v:<{col_ns}}  {pod_v:<{col_pod}}  {peak_v:>12.1f}{unit}  {low_v:>12.1f}{unit}")
     
-    # Inject the cap warning unconditionally right inside the markdown code block!
     lines.append("")
     lines.append("  ⚠️ Note: Historical queries are safely capped at 90d to protect Prometheus.")
         
@@ -2284,10 +2230,8 @@ def _get_top_nodes_prometheus(limit: int, ascending: bool, sort_by: str,
     sort_key_label = "memory" if sort_by.lower() == "memory" else ("disk" if disk_mode else "CPU")
     direction      = "lowest" if ascending else "top"
 
-    # 1. Use the new helper to do ALL the math, formatting, and capping in one line!
     p = _parse_prom_duration(duration, user_timezone, max_days=90)
     
-    # Extract variables from helper for easy access in your existing code
     duration    = p["duration"]
     rate_window = p["rate_window"]
     step        = p["step"]
@@ -2341,7 +2285,6 @@ def _get_top_nodes_prometheus(limit: int, ascending: bool, sort_by: str,
 
     def _query_range(promql: str) -> tuple[list, str | None]:
         enc      = urllib.parse.quote(promql, safe="")
-        # Step is dynamically injected here based on the helper!
         url      = f"{api_base}/query_range?query={enc}&start={start_ts}&end={end_ts}&step={step}"
         raw      = _exec(f"curl -s --max-time 60 '{url}'", large=True)
         if not raw or raw.startswith("[exec error"):
@@ -2390,7 +2333,6 @@ def _get_top_nodes_prometheus(limit: int, ascending: bool, sort_by: str,
 
     # ── Disk I/O mode ─────────────────────────────────────────────────────────
     if disk_mode:
-        # Rate window injected dynamically from the helper!
         read_results,  read_err  = _query_range(f'sum by (instance) (rate(node_disk_read_bytes_total[{rate_window}]))')
         if read_err:
             return f"Disk read query failed: {read_err}"
@@ -2461,7 +2403,6 @@ def _get_top_nodes_prometheus(limit: int, ascending: bool, sort_by: str,
     mem_divisor = 1073741824 if memory_unit.lower() in ("gi", "g", "gb") else 1048576
     mem_label = "Gi" if memory_unit.lower() in ("gi", "g", "gb") else "Mi"
 
-    # Rate window injected dynamically from the helper!
     cpu_results, cpu_err = _query_range(f'sum by (instance) (rate(node_cpu_seconds_total{{mode!="idle"}}[{rate_window}]))')
     if cpu_err: return f"CPU query failed: {cpu_err}"
 
@@ -2697,7 +2638,6 @@ def _parse_prom_duration(duration: str, user_timezone: str = "UTC", max_days: in
         dur_sec = 3600
         duration = "1h"
 
-    # Enforce Maximum Cap and set terminal-friendly message
     cap_msg = ""
     max_sec = max_days * 86400
     if dur_sec > max_sec:
@@ -2743,7 +2683,6 @@ def get_ingress_traffic(duration: str = "1h", user_timezone: str = "UTC") -> str
     import urllib.parse
     from kubernetes.stream import stream as _k8s_stream
 
-    # 1. Use the helper to handle parsing, math, and formatting
     p = _parse_prom_duration(duration, user_timezone, max_days=90)
 
     # ── Find CDP Prometheus pod dynamically ───────────────────────────────────
@@ -2795,7 +2734,6 @@ def get_ingress_traffic(duration: str = "1h", user_timezone: str = "UTC") -> str
 
     def _query_range(promql: str) -> tuple[list, str | None]:
         enc      = urllib.parse.quote(promql, safe="")
-        # Inject the helper variables into the URL
         url      = f"{api_base}/query_range?query={enc}&start={p['start_ts']}&end={p['end_ts']}&step={p['step']}"
         raw      = _exec(f"curl -s --max-time 60 '{url}'")
         if not raw or raw.startswith("[exec error"):
@@ -2814,7 +2752,6 @@ def get_ingress_traffic(duration: str = "1h", user_timezone: str = "UTC") -> str
         return max(vals), min(vals)
 
     # ── Queries ───────────────────────────────────────────────────────────────
-    # Inject rate_window from the helper
     rx_results, rx_err = _query_range(
         f'sum(rate(container_network_receive_bytes_total'
         f'{{namespace="kube-system",pod=~"rke2-ingress-nginx-controller-.*"}}[{p["rate_window"]}]))')
@@ -2934,7 +2871,6 @@ def get_longhorn_node_status(node_name: str = None) -> str:
         if not items:
             return "No Longhorn nodes found in namespace `longhorn-system`."
 
-        # Filter by partial node name if provided
         if node_name:
             items = [n for n in items
                      if node_name.lower() in n.get("metadata", {}).get("name", "").lower()]
@@ -3498,12 +3434,9 @@ def find_resource(name_substring: str, resource_type: str = None, namespace: str
                         )
             return results
 
-        # 1. Try search with requested type
         resources = _build_resources(resource_type)
         results   = _search(resources)
 
-        # 2. Smart Fallback: If they asked for a 'pod' but it doesn't exist, search all other types 
-        # so the LLM can say "No pod found, but I found a deployment"
         if not results and name_substring and resource_type:
             all_resources = _build_resources(None)
             results       = _search(all_resources)
@@ -3513,11 +3446,9 @@ def find_resource(name_substring: str, resource_type: str = None, namespace: str
                          "|---|---|---|---|"]
                 return "\n".join(lines + results)
 
-        # 3. Safe Exit: If literally nothing matches, just return text. No context nukes.
         if not results and name_substring:
             return f"No resources found matching `{name_substring}` in {namespace or 'all namespaces'}."
 
-        # 4. Standard Return
         scope       = f"namespace `{namespace}`" if namespace else "all namespaces"
         filter_note = f" matching `{name_substring}`" if name_substring else ""
         header      = f"Showing resources{filter_note} in {scope}."
@@ -3731,7 +3662,7 @@ def run_cluster_health() -> str:
         storage_issues = True
 
     try:
-        pv_data = _get_pv_usage_data(threshold=0)   # fetch all, filter ourselves
+        pv_data = _get_pv_usage_data(threshold=0)
         over  = [d for d in pv_data if d["pct_val"] >= 80]
         under = [d for d in pv_data if d["pct_val"] <  80]
         if over:
@@ -3811,8 +3742,6 @@ def run_cluster_health() -> str:
     if warnings:
         out.append(f"🟠 {len(warnings)} warning(s):")
         for item in warnings: out.append(f"   • {item}")
-    #if healthy:
-    #    out.append(f"✅ Healthy: {', '.join(healthy)}")
     if not criticals and not warnings:
         out.append("✅ Cluster is healthy — all checks passed")
 
@@ -3938,8 +3867,6 @@ def generate_healthcheck_report() -> str:
             R.append(table(["NAME","ROLES","STATUS","CPU","MEMORY","GPU"], rows))
 
             R.append(subsection("Node Capacity (Allocatable vs Requested)"))
-            # Pre-fetch all pods once — avoids per-node field_selector calls that
-            # trigger WebSocket errors on RKE2 clusters.
             try:
                 _all_pods_for_capacity = _core.list_pod_for_all_namespaces().items
             except Exception:
@@ -4001,7 +3928,6 @@ def generate_healthcheck_report() -> str:
     # ── 2. Kubernetes Control Plane & Recent Diagnostics ──────────────────
     R.append(section("2. Kubernetes Control Plane & Recent Diagnostics"))
 
-    # Component statuses
     try:
         cs_items = _core.list_component_status().items
         if cs_items:

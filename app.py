@@ -558,8 +558,6 @@ def build_agent():
         for tc in tcs:
             name, args = tc["name"], dict(tc.get("args", {}) or {})
 
-            # ── Guard: LLM is re-calling a tool it already used this session ──
-            # Skip execution and force a direct answer from the previous result.
             prev_calls = state.get("tool_calls_made", [])
             if name in prev_calls:
                 prev_result = next(
@@ -600,12 +598,9 @@ def build_agent():
                 else f"⚙️ {name}"
             )
 
-            # ── Guard: if this tool was already called earlier in this
-            # conversation, skip re-execution and use the previous result. ────
             _prev_calls = state.get("tool_calls_made", [])
             if name in _prev_calls:
                 _log_ag.info(f"[REQ:{state.get('req_id', '')}] [tool_node] duplicate call to {name!r} detected — skipping, forcing direct answer from prior result")
-                # find the most recent ToolMessage for this tool in state messages
                 _prior = next(
                     (m.content for m in reversed(state.get("messages", []))
                      if isinstance(m, ToolMessage) and getattr(m, "name", "") == name),
@@ -615,7 +610,6 @@ def build_agent():
                     direct_answer = _prior
                     updates.append(f"⚡ Duplicate tool call blocked — using prior result")
                     break
-                # no prior result found — fall through to normal execution
 
             out = _call_tool(name, args, all_tools)
             _out_str = str(out)
@@ -1984,7 +1978,6 @@ async def api_kb_stream(req: KbAskRequest, request: Request):
                 return
 
             # 3. ALWAYS INVOKE THE LLM
-            # We wrap the blocking thread in a task so we can poll the HTTP connection while it runs
             llm_task = _asyncio.ensure_future(
                 _asyncio.get_event_loop().run_in_executor(None, lambda: _llm_synthesise(context, q, top_k, req.max_tokens))
             )
