@@ -1222,9 +1222,11 @@ button{cursor:pointer;font-family:inherit}
         <span class="gl-tag gl-tag-cluster">CLUSTER</span>
         <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Show me the CPU usage for user Dennis in cmlwb1 workbench for the past 28 days</span><button class="gl-copy-btn" onclick="glCopy(this,'Show me the CPU usage for user Dennis in cmlwb1 workbench for the past 28 days')">copy</button></div></div>
         <div class="gl-ex-note">Queries Prometheus for per-pod CPU and memory usage in the CAI user namespace and identifies any pods owned by Dennis that are consuming resources. Note: cmlwb1 is the namespace of the Cloudera AI (CAI) Workbench.</div>
-        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Who is cmlwb1-user-1 in cmlwb1 ns?</span><button class="gl-copy-btn" onclick="glCopy(this,'Who is cmlwb1-user-1 in cmlwb1 ns?')">copy</button></div></div>
+        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Who is cmlwb1-user-1?</span><button class="gl-copy-btn" onclick="glCopy(this,'Who is cmlwb1-user-1?')">copy</button></div></div>
         <div class="gl-ex-note">Resolves a CML Workbench namespace (e.g. cmlwb1-user-1) back to the owning username by querying the workbench database. Useful when you see a namespace in logs or resource listings and want to identify which user it belongs to.</div>
-
+        <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-cluster"></div><div class="gl-ex-body"><span class="gl-ex-text">Show the resources requested by Dennis in cmlwb1 workbench for the past 10 weeks</span><button class="gl-copy-btn" onclick="glCopy(this,'Show the resources requested by Dennis in cmlwb1 workbench for the past 10 weeks')">copy</button></div></div>
+        <div class="gl-ex-note">Queries the CML Workbench database to find historical CPU and memory resource requests allocated to workloads owned by user over a 10-week period. This checks requested allocation, rather than active Prometheus metric usage.</div>  
+        
         <h3>Model Knowledge</h3>
         <span class="gl-tag gl-tag-howto">HOW-TO</span><span class="gl-tag gl-tag-general">GENERAL</span>
         <div class="gl-ex-row"><div class="gl-ex-bar gl-bar-howto"></div><div class="gl-ex-body"><span class="gl-ex-text">explain how you access the database of a pod to get the table names, don't run it, just explain</span><button class="gl-copy-btn" onclick="glCopy(this,&quot;explain how you access the database of a pod to get the table names, don't run it, just explain&quot;)">copy</button></div></div>
@@ -2381,11 +2383,11 @@ const EXAMPLES = [
   'Which pods are associated with secret cdp-release-grafana in cdp ns?',
   'Show the CPU and RAM usage of all nodes for the past 2hr',
   'Show the disk I/O of all the nodes for the past 3 months',
-  'Show me the mem usage for user Dennis in cmlwb1 workbench for the past 4 weeks',
   'Show the top 3 pods with the highest CPU and RAM usage over the past 3 months across the cluster',
   'Show the top 3 pods with the highest CPU usage for past 5 days in cdp namespace',
   'I need a pod with 2CPU & 8GB RAM, does the cluster have enough available capacity?',
-
+  'List all sessions with cpu and mem requested by user Dennis in cmlwb1 workspace for the past 22 days',
+  'Show the resources usage for user Dennis in cmlwb1 workbench for the past 10 weeks',
 ];
 const exBtns = document.getElementById('ex-btns');
 EXAMPLES.forEach(ex=>{
