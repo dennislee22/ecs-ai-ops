@@ -1118,7 +1118,7 @@ K8S_TOOL_METADATA: dict = {
         "fn":               exec_db_query,
         "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup workbench resources metrics usage consume",
         "description": (
-            "CRITICAL GUARDRAIL: IF THE USER ASKS ABOUT 'REQUESTS', 'LIMITS', 'SESSIONS', OR 'JOBS' FOR A USER, YOU MUST NEVER CALL THIS TOOL! "
+            "CRITICAL GUARDRAIL: If user asks about REQUEST, limits, sessions FOR A USER, YOU MUST NEVER CALL THIS TOOL! "
             "ABORT AND CALL `get_cml_session_request` INSTEAD! This tool is ONLY for active usage or general SQL queries. 🛑\n\n"
             "Execute a read-only SQL query inside a running database pod in a Kubernetes namespace. "
             "For multi-container pods, set container='db' to target the correct database container. "
