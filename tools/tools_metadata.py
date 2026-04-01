@@ -1116,64 +1116,28 @@ K8S_TOOL_METADATA: dict = {
 
     "exec_db_query": {
         "fn":               exec_db_query,
-        "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup workbench workbench resources metrics usage consume",
+        "embed_keywords":   "database db sql query mysql mariadb postgresql select show describe table schema user records namespace data queries who owner username lookup workbench resources metrics usage consume",
         "description": (
             "Execute a read-only SQL query inside a running database pod in a Kubernetes namespace. "
-            "Supports MySQL, MariaDB, and PostgreSQL, auto-detected from the container image or name. "
-            "For multi-container pods (e.g., 'upgrade-db', 'k8tz', 'fluent-bit', 'db'), "
-            "set container='db' to target the correct database container. "
-            "Credentials (username, password, database) are automatically discovered from the pod's environment, "
-            "Secrets, and ConfigMaps. No manual input required. "
+            "For multi-container pods, set container='db' to target the correct database container. "
+            "Credentials (username, password, database) are automatically discovered from the pod's environment. "
             "Use for querying database contents, user accounts, table data, or schema inspection. "
-            "CREDENTIAL SAFETY: Always call get_secret_list() first for questions about usernames or passwords. "
-            "Only use exec_db_query if secrets contain no useful credentials. "
             "READ-ONLY ENFORCEMENT: Only SELECT, SHOW, DESCRIBE, EXPLAIN are allowed. "
-            "INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE are blocked. "
-            "MANDATORY SCHEMA INSTRUCTION: To view the schema, structure, or columns of a specific table, "
-            "you MUST use the query `DESCRIBE <table_name>`. Do not use `SELECT *` to find table schemas. "
-            "MANDATORY ARGUMENT RULE: `namespace` is ALWAYS required. NEVER call this tool without it. "
-            "If you do not yet know the namespace, look it up first before calling this tool. "
-            "CRITICAL GUARDRAIL FOR REQUESTS/LIMITS: If the user asks about CPU or Memory REQUESTS or LIMITS for a user or workbench, DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` instead, which handles user resolution automatically. "
-            "CUSTOM RULE — USER/NAMESPACE RESOLUTION (ACTIVE USAGE ONLY): "
-            "IF the input contains '-user-' (e.g. 'cmlwb1-user-1', 'cmlwb2-user-3'): "
-            "→ SELECT username FROM users WHERE LOWER(namespace)=LOWER('cmlwb1-user-1') "
-            "   namespace arg = 'cmlwb1' (prefix before '-user-') "
-            "   sql WHERE value = 'cmlwb1-user-1' (full string, never truncated) "
-            "EXAMPLE: user asks 'who is cmlwb1-user-1 in cmlwb1' "
+            "MANDATORY SCHEMA INSTRUCTION: If PostgreSQL, use `DESCRIBE <table_name>` to view schemas. "
+            "CRITICAL GUARDRAIL FOR REQUESTS/LIMITS: If the user asks about CPU or Memory REQUESTS or LIMITS for a user, DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` directly! "
+            "If the user asks for active resource USAGE (e.g., 'RAM or memory usage for user Manas', 'CPU usage for user Manas'): "
+            "→ Step 1: Call exec_db_query to get their namespace: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
+            "→ Step 2: Wait for the result, then call `get_top_pods` using that namespace. "
+            "CRITICAL: For USAGE, you MUST call `get_top_pods` in Step 2. DO NOT call `get_workbench_top_requests`! "
+            "CUSTOM RULE — USER/NAMESPACE RESOLUTION: "
+            "IF the input contains '-user-' (e.g. 'cmlwb1-user-1'): "
             "→ exec_db_query(namespace='cmlwb1', sql=\"SELECT username FROM users WHERE LOWER(namespace)=LOWER('cmlwb1-user-1')\") "
-            "IF the input has NO '-user-' (e.g. 'Dennis', 'manas'): "
-            "→ SELECT namespace FROM users WHERE LOWER(username)=LOWER('dennis') "
-            "   namespace arg = workbench stated by user (e.g. 'cmlwb1') "
-            "EXAMPLE: user asks 'what namespace is Dennis in cmlwb1' "
+            "IF the input has NO '-user-' (e.g. 'Dennis'): "
             "→ exec_db_query(namespace='cmlwb1', sql=\"SELECT namespace FROM users WHERE LOWER(username)=LOWER('dennis')\") "
-            "CRITICAL: '-user-' in input → SELECT username. No '-user-' in input → SELECT namespace. "
             "NEVER truncate the input string in the SQL WHERE clause — use it in full. "
-            "NEVER use SELECT namespace when the input contains '-user-'. "
-            "NEVER use SELECT username when the input has no '-user-'. "
-            "USER METRICS CHAIN: If the query asks for resource usage for a specific user "
-            "(e.g. 'is user Dennis hogging resources', 'top pods for user manas'): "
-            "→ Step 1: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
-            "→ Step 2: Call get_top_pods(namespace=<result>, duration=<requested window or '1h'>, search='') "
-            "NEVER pass the username into get_top_pods search — use the namespace returned from the DB. "
-            "WORKFLOW EXAMPLE: To access 'db-0' in namespace 'cmlwb1' and find tables in database 'sense': "
-            "exec_db_query(namespace='cmlwb1', pod_name='db-0', container='db', database='sense', "
-            "sql=\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'\") "
-            "If an error lists available containers, re-call with the correct container. "
-            "RESULT INTERPRETATION: The output includes a header row showing column names (e.g., 'user|host|password'). "
-            "'host' is a connection restriction, not a password. "
-            "'password' or 'passwd' contains the credential hash. Do not confuse these. "
+            "RESULT INTERPRETATION: 'host' is a connection restriction, not a password. "
             "MANDATORY DIALECT RETRY: If the error mentions 'does not exist', 'relation', or 'unknown table', "
-            "retry immediately with the other SQL dialect. "
-            "MySQL error → retry with PostgreSQL SQL (SELECT usename, passwd FROM pg_shadow). "
-            "PostgreSQL error → retry with MySQL SQL (SELECT user, password FROM mysql.user). "
-            "Do not ask the user for clarification. "
-            "PostgreSQL examples: "
-            "\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'\", "
-            "\"SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name\", "
-            "\"SELECT usename, passwd FROM pg_shadow WHERE usename='x'\", "
-            "\"SELECT datname FROM pg_database\" "
-            "MySQL/MariaDB examples: "
-            "\"SHOW TABLES\", \"SELECT user, host FROM mysql.user\", \"SHOW DATABASES\""
+            "retry immediately with the other SQL dialect (PostgreSQL vs MySQL)."
         ),
         "parameters":  {
             "namespace": {
@@ -1193,9 +1157,9 @@ K8S_TOOL_METADATA: dict = {
                     "\"SELECT usename FROM pg_catalog.pg_user\", \"DESCRIBE my_table\""
                 ),
             },
-            "pod_name":  {"type": "string", "default": "", "description": "Optional: specific DB pod name (e.g., 'db-0'). Leave empty to auto-detect the first running DB pod in the namespace."},
-            "database":  {"type": "string", "default": "", "description": "Optional: database/schema name. Leave empty to use the value auto-discovered from the pod's environment."},
-            "container": {"type": "string", "default": "", "description": "Optional: container name inside the pod (e.g., 'db'). Required for multi-container pods if the DB container is not the first. If the tool errors with 'available containers: ...', set this to the DB container name."},
+            "pod_name":  {"type": "string", "default": "", "description": "Optional: specific DB pod name (e.g., 'db-0')."},
+            "database":  {"type": "string", "default": "", "description": "Optional: database/schema name."},
+            "container": {"type": "string", "default": "", "description": "Optional: container name inside the pod."},
         },
     },
 
