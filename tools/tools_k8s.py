@@ -1664,7 +1664,7 @@ def _enrich_cml_usernames(namespaces: set) -> dict:
             
     return mapping
 
-def get_workbench_top_requests(namespace: str, limit: int = 10, sort_by: str = "cpu",
+def get_cml_session_request(namespace: str, limit: int = 10, sort_by: str = "cpu",
                                duration: str = "30d", search: str = "") -> str:
     import re
     import json

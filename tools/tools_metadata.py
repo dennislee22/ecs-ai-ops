@@ -5,7 +5,7 @@ from tools.tools_k8s import (
     get_pvc_status, get_cluster_version, get_storage_classes, get_endpoints,
     get_node_capacity, get_persistent_volumes, get_service, get_ingress, describe_pv,
     get_configmap_list, get_secret_list, get_resource_quotas, get_limit_ranges,
-    get_serviceaccounts, get_cluster_role_bindings, get_namespace_status, get_workbench_top_requests,
+    get_serviceaccounts, get_cluster_role_bindings, get_namespace_status, get_cml_session_request,
     get_pod_tolerations, run_cluster_health, get_replicaset, get_crds, get_longhorn_node_status,
     get_namespace_resource_summary, get_pod_images, get_unhealthy_pods_detail,
     get_coredns_health, get_pv_usage, find_resource, get_pod_containers_resources, get_cronjob_status,
@@ -1124,11 +1124,11 @@ K8S_TOOL_METADATA: dict = {
             "Use for querying database contents, user accounts, table data, or schema inspection. "
             "READ-ONLY ENFORCEMENT: Only SELECT, SHOW, DESCRIBE, EXPLAIN are allowed. "
             "MANDATORY SCHEMA INSTRUCTION: If PostgreSQL, use `DESCRIBE <table_name>` to view schemas. "
-            "TOOL INSTRUCTION: If the user asks about CPU or Memory REQUESTS (e.g., 'List all sessions with cpu and mem requested by user xxx in asd workbench', 'Show cpu and ram requested by user yyy in qwe workspace'), DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` directly! "
+            "TOOL INSTRUCTION: If the user asks about CPU or Memory REQUESTS (e.g., 'List all sessions with cpu and mem requested by user xxx in asd workbench', 'Show cpu and ram requested by user yyy in qwe workspace'), DO NOT CALL THIS TOOL. Call `get_cml_session_request` directly! "
             "If the user asks for active resource USAGE (e.g., 'RAM or memory usage for user Manas', 'CPU usage for user Manas'): "
             "→ Step 1: Call exec_db_query to get their namespace: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
             "→ Step 2: Wait for the result, then call `get_top_pods` using that namespace. "
-            "CRITICAL: For USAGE, you MUST call `get_top_pods` in Step 2. DO NOT call `get_workbench_top_requests`! "
+            "CRITICAL: For USAGE, you MUST call `get_top_pods` in Step 2. DO NOT call `get_cml_session_request`! "
             "CUSTOM RULE — USER/NAMESPACE RESOLUTION: "
             "IF the input contains '-user-' (e.g. 'cmlwb1-user-1'): "
             "→ exec_db_query(namespace='cmlwb1', sql=\"SELECT username FROM users WHERE LOWER(namespace)=LOWER('cmlwb1-user-1')\") "
@@ -1163,14 +1163,14 @@ K8S_TOOL_METADATA: dict = {
         },
     },
 
-    "get_workbench_top_requests": {
-        "fn":               get_workbench_top_requests,
-        "embed_keywords":   "top pods requested request requests allocation reserved metrics workbench workbench user cpu memory ram graph highest lowest historical trend",
+    "get_cml_session_request": {
+        "fn":               get_cml_session_request,
+        "embed_keywords":   "session pods request allocation workbench workspace user cpu memory ram graph highest lowest historical trend",
         "description": (
+            "workbench is equivalent to workspace and vice versa. "
             "Query the workbench's Postgres 'sense' database to find the top historical CPU and memory requests for workloads (dashboards) over a specific time period. "
-            "Use this when the user explicitly asks for top CPU or memory 'requests' or 'limits' over the past X days/hours for a workbench or a specific user. "
-            "This checks resource allocation recorded directly in the CML database tables, NOT active Prometheus usage. "
-            "Because this queries a workbench database, a specific workbench namespace MUST be provided."
+            "Use this when the user explicitly asks for top CPU or memory 'requests' or 'limits' over the past X days/hours for a workbench/workspace or a specific user. "
+            "This checks resource request recorded directly in the CML database tables, NOT active Prometheus usage. "
         ),
         "parameters":  {
             "namespace": {
