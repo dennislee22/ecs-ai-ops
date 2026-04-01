@@ -1124,7 +1124,7 @@ K8S_TOOL_METADATA: dict = {
             "Use for querying database contents, user accounts, table data, or schema inspection. "
             "READ-ONLY ENFORCEMENT: Only SELECT, SHOW, DESCRIBE, EXPLAIN are allowed. "
             "MANDATORY SCHEMA INSTRUCTION: If PostgreSQL, use `DESCRIBE <table_name>` to view schemas. "
-            "CRITICAL GUARDRAIL FOR REQUESTS/LIMITS: If the user asks about CPU or Memory REQUESTS or LIMITS for a user, DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` directly! "
+            "If the user asks about CPU or Memory REQUESTS (e.g., 'List all sessions with cpu and mem requested by user xxx in asd workbench', 'Show cpu and ram requested by user yyy in qwe workspace'), DO NOT CALL THIS TOOL. Call `get_workbench_top_requests` directly! "
             "If the user asks for active resource USAGE (e.g., 'RAM or memory usage for user Manas', 'CPU usage for user Manas'): "
             "→ Step 1: Call exec_db_query to get their namespace: SELECT namespace FROM users WHERE LOWER(username)=LOWER('<the_user>') "
             "→ Step 2: Wait for the result, then call `get_top_pods` using that namespace. "
