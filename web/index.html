@@ -1424,8 +1424,7 @@ button{cursor:pointer;font-family:inherit}
             <div class="stab-pane-scroll">
             <div class="stab-pane-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><use href="#icon-shield"/></svg>Security</div>
             <div style="border-left:3px solid #f59e0b;color:var(--textMain);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 10px;background:var(--tooltipBg);border-radius:0 4px 4px 0;margin-bottom:14px">
-              ⚠️ <strong style="color:#f59e0b">Warning:</strong>
-              Enabling this option will show decoded secret values — including passwords, tokens, and certificates — directly in the chat. Only enable in a secure, private session.
+              ⚠️ Enabling this option will show decoded secret values including passwords, tokens, and certificates directly in the chat. Only enable in a secure, private session.
             </div>
             <div style="display:flex;flex-direction:column;gap:18px;padding:4px 0">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
@@ -1441,7 +1440,7 @@ button{cursor:pointer;font-family:inherit}
                   <span id="secret-toggle-thumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px #0006"></span>
                 </label>
               </div>
-              <div id="secret-toggle-status" style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--dimText);min-height:16px">
+              <div id="secret-toggle-status" style="font-size:15px;font-family:'IBM Plex Mono',monospace;color:var(--dimText);min-height:16px">
                 🔒 Secret values are hidden (safe mode)
               </div>
             </div>
@@ -2013,6 +2012,7 @@ async function saveConfig() {
 }
 
 // Fetch all settings from backend on load
+// Fetch all settings from backend on load
 async function loadOutputConfig(){
   try {
     const r = await fetch('/api/config');
@@ -2022,17 +2022,17 @@ async function loadOutputConfig(){
     if(d.kubectl_max_chars) {
         const sl = document.getElementById('max-chars-slider');
         const vl = document.getElementById('max-chars-val');
-        if(sl){ sl.value = d.kubectl_max_chars; vl.textContent = d.kubectl_max_chars.toLocaleString(); }
+        if(sl){ sl.value = d.kubectl_max_chars; vl.textContent = d.kubectl_max_chars.toLocaleString(); updateSliderColor(sl); }
     }
     if(d.max_new_tokens) {
         const tsl = document.getElementById('chat-max-tokens-slider');
         const tvl = document.getElementById('chat-max-tokens-val');
-        if(tsl){ tsl.value = d.max_new_tokens; tvl.textContent = d.max_new_tokens.toLocaleString(); }
+        if(tsl){ tsl.value = d.max_new_tokens; tvl.textContent = d.max_new_tokens.toLocaleString(); updateSliderColor(tsl); }
     }
     if(d.llm_timeout) {
         const tosl = document.getElementById('llm-timeout-slider');
         const tovl = document.getElementById('llm-timeout-val');
-        if(tosl){ tosl.value = d.llm_timeout; tovl.textContent = d.llm_timeout; }
+        if(tosl){ tosl.value = d.llm_timeout; tovl.textContent = d.llm_timeout; updateSliderColor(tosl); }
     }
     if(d.disable_loop_protection !== undefined) {
         const dlpToggle = document.getElementById('disable-loop-protection-toggle');
@@ -2068,15 +2068,48 @@ if (secretToggle) {
   });
 }
 
-// Update slider text values while dragging (does not save until mouse is released)
+// Helper to calculate and apply dynamic GPU-like color to sliders
+function updateSliderColor(slider) {
+  if (!slider) return;
+  const min = parseFloat(slider.min) || 0;
+  const max = parseFloat(slider.max) || 100;
+  const val = parseFloat(slider.value) || 0;
+  
+  // Calculate percentage (0 to 100)
+  const p = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+  
+  // Teal -> Violet -> Deep Red logic (matches GPU bar)
+  let color;
+  if (p < 50) color = 'hsl(' + (190 - p * 0.6) + ',85%,45%)';           // Teal
+  else if (p < 80) color = 'hsl(' + (160 - (p - 50) * 4) + ',80%,42%)'; // Violet
+  else color = 'hsl(' + (40 - (p - 80) * 2) + ',85%,42%)';              // Deep Red
+  
+  slider.style.accentColor = color;
+  
+  // Match the text number color to the slider
+  const valElId = slider.id.replace('-slider', '-val');
+  const valEl = document.getElementById(valElId);
+  if (valEl) valEl.style.color = color;
+}
+
+// Update slider text values and colors while dragging
 document.getElementById('max-chars-slider')?.addEventListener('input', (e) => {
   document.getElementById('max-chars-val').textContent = parseInt(e.target.value).toLocaleString();
+  updateSliderColor(e.target);
 });
 document.getElementById('chat-max-tokens-slider')?.addEventListener('input', (e) => {
   document.getElementById('chat-max-tokens-val').textContent = parseInt(e.target.value).toLocaleString();
+  updateSliderColor(e.target);
 });
 document.getElementById('llm-timeout-slider')?.addEventListener('input', (e) => {
   document.getElementById('llm-timeout-val').textContent = parseInt(e.target.value);
+  updateSliderColor(e.target);
+});
+
+// Initialize colors on startup for default HTML values
+['max-chars-slider', 'chat-max-tokens-slider', 'llm-timeout-slider'].forEach(id => {
+  const sl = document.getElementById(id);
+  if (sl) updateSliderColor(sl);
 });
 
 // Initial load
