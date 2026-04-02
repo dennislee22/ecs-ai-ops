@@ -10,8 +10,8 @@
 <script src="/static/marked.min.js"></script>
 <style>
 
-/* ── Theme variables (Midnight defaults) ─────────────────────────────────── */
-:root{
+/* ── Theme variables ─────────────────────────────────────────────────────── */
+:root, [data-theme="midnight"] {
   --bg:#030712;--headerBg:#070d1a;--border:#0f1f35;
   --accent:#38bdf8;--accent2:#7dd3fc;
   --msgBg:#070d1a;--inputBg:#0a0f1e;
@@ -21,6 +21,33 @@
   --panelBg:#020a14;--panelBorder:#0f1f35;--panelLabel:#7dd3fc;--panelDim:#475569;
   --textMain:#e2e8f0;--inputText:#e2e8f0;
   --shimmer:linear-gradient(90deg,#38bdf8 0%,#818cf8 25%,#c084fc 50%,#38bdf8 75%,#00C1DE 100%);
+  --solidTitle: transparent;
+}
+
+[data-theme="singapore"] {
+  --bg:#ffffff;--headerBg:#ffffff;--border:#fbd0d3;
+  --accent:#EF3340;--accent2:#b31a27;
+  --msgBg:#fff5f5;--inputBg:#ffffff;
+  --userBg:#fff0f0;--userBorder:#fbd0d3;
+  --statusBg:#fff5f5;--dimText:#9b1c1c;--bodyText:#1a0000;
+  --tooltipBg:#ffffff;--tooltipText:#1a0000;
+  --panelBg:#fff5f5;--panelBorder:#fbd0d3;--panelLabel:#EF3340;--panelDim:#9b1c1c;
+  --textMain:#1a0000;--inputText:#1a0000;
+  --shimmer:linear-gradient(90deg,#EF3340 0%,#ff6b74 40%,#EF3340 80%);
+  --solidTitle: #EF3340;
+}
+
+[data-theme="cloudera"] {
+  --bg:#100045;--headerBg:#0c0038;--border:#2d1a7a;
+  --accent:#F96702;--accent2:#ff8c2a;
+  --msgBg:#1a0a5e;--inputBg:#1e1070;
+  --userBg:#2a0f00;--userBorder:#F9670266;
+  --statusBg:#0c0038;--dimText:#b8a9e8;--bodyText:#e8e0ff;
+  --tooltipBg:#2d1a7a;--tooltipText:#fff;
+  --panelBg:#160850;--panelBorder:#2d1a7a;--panelLabel:#F96702;--panelDim:#9080cc;
+  --textMain:#f0ecff;--inputText:#f0ecff;
+  --shimmer:linear-gradient(90deg,#F96702 0%,#c084fc 35%,#F96702 65%,#c084fc 100%);
+  --solidTitle: #F96702;
 }
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
@@ -1825,48 +1852,9 @@ document.querySelectorAll('.mtab').forEach(btn => {
 // THEMES
 // ═══════════════════════════════════════════════════════════════════════════
 const THEMES = {
-  midnight:{
-    name:'Midnight', shimmer:true,
-    '--bg':'#030712','--headerBg':'#070d1a','--border':'#0f1f35',
-    '--accent':'#38bdf8','--accent2':'#7dd3fc',
-    '--msgBg':'#070d1a','--inputBg':'#0a0f1e',
-    '--userBg':'#0f172a','--userBorder':'#1e293b',
-    '--statusBg':'#040b14','--dimText':'#475569','--bodyText':'#cbd5e1',
-    '--tooltipBg':'#0a1628','--tooltipText':'#94a3b8',
-    '--panelBg':'#020a14','--panelBorder':'#0f1f35','--panelLabel':'#7dd3fc','--panelDim':'#475569',
-    '--textMain':'#e2e8f0','--inputText':'#e2e8f0',
-    '--shimmer':'linear-gradient(90deg,#38bdf8 0%,#818cf8 25%,#c084fc 50%,#38bdf8 75%,#00C1DE 100%)',
-  },
-  singapore:{
-    // #EF3340 accent on white background
-    name:"S'pore", shimmer:false, solidTitle:'#EF3340',
-    '--bg':'#ffffff','--headerBg':'#ffffff','--border':'#fbd0d3',
-    '--accent':'#EF3340','--accent2':'#b31a27',
-    '--msgBg':'#fff5f5','--inputBg':'#ffffff',
-    '--userBg':'#fff0f0','--userBorder':'#fbd0d3',
-    '--statusBg':'#fff5f5','--dimText':'#9b1c1c','--bodyText':'#1a0000',
-    '--tooltipBg':'#ffffff','--tooltipText':'#1a0000',
-    '--panelBg':'#fff5f5','--panelBorder':'#fbd0d3','--panelLabel':'#EF3340','--panelDim':'#9b1c1c',
-    '--textMain':'#1a0000','--inputText':'#1a0000',
-    '--shimmer':'linear-gradient(90deg,#EF3340 0%,#ff6b74 40%,#EF3340 80%)',
-  },
-  cloudera:{
-    // Cloudera brand: deep navy #100045 bg, orange #F96702 accents, white/light text
-    name:'Cloudera', shimmer:true, solidTitle:'#F96702',
-    '--bg':'#100045',           // Cloudera deep navy
-    '--headerBg':'#0c0038',     // slightly darker navy for header
-    '--border':'#2d1a7a',
-    '--accent':'#F96702',       // Cloudera orange
-    '--accent2':'#ff8c2a',
-    '--msgBg':'#1a0a5e','--inputBg':'#1e1070',
-    '--userBg':'#2a0f00','--userBorder':'#F9670266',
-    '--statusBg':'#0c0038','--dimText':'#b8a9e8','--bodyText':'#e8e0ff',
-    '--tooltipBg':'#2d1a7a','--tooltipText':'#fff',
-    '--panelBg':'#160850','--panelBorder':'#2d1a7a',
-    '--panelLabel':'#F96702','--panelDim':'#9080cc',
-    '--textMain':'#f0ecff','--inputText':'#f0ecff',
-    '--shimmer':'linear-gradient(90deg,#F96702 0%,#c084fc 35%,#F96702 65%,#c084fc 100%)',
-  },
+  midnight:  { name: 'Midnight', shimmer: true },
+  singapore: { name: "S'pore",   shimmer: false },
+  cloudera:  { name: 'Cloudera', shimmer: true }
 };
 
 let curTheme = 'midnight';
@@ -1874,17 +1862,19 @@ let curTheme = 'midnight';
 function applyTheme(name){
   const t = THEMES[name];
   if(!t) return;
-  const root = document.documentElement;
-  Object.entries(t).forEach(([k,v])=>{ if(k.startsWith('--')) root.style.setProperty(k,v); });
+  
+  document.documentElement.setAttribute('data-theme', name);
+  
   curTheme = name;
   document.getElementById('theme-name').textContent = t.name;
+  
   const ttl = document.getElementById('ttl');
   if(t.shimmer){
     ttl.className = 'shiny';
   } else {
-    root.style.setProperty('--solidTitle', t.solidTitle||'#333');
     ttl.className = 'shiny-solid';
   }
+  
   document.querySelectorAll('.tdot').forEach(b=>{
     b.classList.toggle('active', b.dataset.theme === name);
   });
