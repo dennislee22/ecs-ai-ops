@@ -953,7 +953,7 @@ button{cursor:pointer;font-family:inherit}
           </div>
         </div>
         <div id="chat-refresh-note">
-          💡 <strong>Tip:</strong> Each question is treated independently (no conversation history). For best results, always narrow the query (e.g. <em>list all RWO pvc in <strong>cdp</strong> namespace</em>) to get faster and more accurate responses.
+          ⚠️ <strong>Tip:</strong> Each question is treated independently (no conversation history). For best results, always narrow the query (e.g. <em>list all RWO pvc in <strong>cdp</strong> namespace</em>) to get faster and more accurate responses.
         </div>
         <div id="input-bar">
           <textarea id="chat-input" rows="2"
@@ -1008,9 +1008,7 @@ button{cursor:pointer;font-family:inherit}
           </svg>
         </h3>
         <p>The <strong>Skip Synthesis</strong> toggle bypasses the LLM's final answer generation and streams the raw tool output directly to the chat. Best used for simple single-tool queries where the output is self-explanatory (e.g. logs, pod describe, health scorecard). Responses are typically faster.</p>
-        <div style="background:var(--inputBg); border-left:3px solid #f59e0b; border-radius:0 8px 8px 0; padding:10px 14px; margin:10px 0 16px; font-size:13px; font-family:'IBM Plex Sans',sans-serif;">
-          ⚠️ <strong style="color:#f59e0b">Warning:</strong> Enabling this option will show decoded secret values including passwords, tokens, and certificates directly in the chat. Only enable in a secure, private session.
-        </div>
+        <div class="tip">⚠️ Enabling this option will show decoded secret values including passwords, tokens, and certificates directly in the chat. Only enable in a secure, private session.</div>
 
         <!-- Max output tokens -->
         <h3 style="margin-top:14px;">Set Max Output Tokens</h3>
