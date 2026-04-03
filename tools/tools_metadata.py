@@ -832,9 +832,13 @@ K8S_TOOL_METADATA: dict = {
         ),
         "parameters":  {
             "duration": {
-                "type":    "string",
+                "type": "string",
                 "default": "1h",
-                "description": "Time window for traffic data. Options: '1h', '6h', '24h', '7d'.",
+                "description": (
+                    "Time window to look back (e.g., '1h', '24h', '7d', '10d', '30d'). "
+                    "🚨 CRITICAL: You MUST extract the EXACT number of days or hours from the user's prompt! "
+                    "If the user asks for '10 days', you MUST pass '10d'. Do NOT round to '7d' or use the default unless the user did not specify a timeframe."
+                )
             },
         },
     },
