@@ -12,7 +12,7 @@
 
 /* ── Theme  ─────────────────────────────────────────────────────── */
 :root, [data-theme="midnight"] {
-  --bg:#030712;--headerBg:#070d1a;--border:#0f1f35;
+  --bg:#030712;--headerBg:#070d1a;--border:#0f1f35; --border2:#38bdf8;
   --accent:#38bdf8;--accent2:#7dd3fc;--primaryButton:#38bdf8;
   --msgBg:#070d1a;--inputBg:#0a0f1e;
   --userBg:#0f172a;--userBorder:#1e293b;
@@ -25,7 +25,7 @@
 }
 
 [data-theme="singapore"] {
-  --bg:#ffffff;--headerBg:#ffffff;--border:#f6a2a8;
+  --bg:#ffffff;--headerBg:#ffffff;--border:#f6a2a8; --border2:#ff0015;
   --accent:#ff0015;--accent2:#ff0015;--primaryButton:#ff6a76;
   --msgBg:#fff5f5;--inputBg:#ffe9eb;
   --userBg:#fff0f0;--userBorder:#fbb5ba;
@@ -38,7 +38,7 @@
 }
 
 [data-theme="cloudera"] {
-  --bg:#100045;--headerBg:#0c0038;--border:#2d1a7a;
+  --bg:#100045;--headerBg:#0c0038;--border:#2d1a7a; --border2:#F96702;
   --accent:#F96702;--accent2:#ff8c2a;--primaryButton:#F96702;
   --msgBg:#1a0a5e;--inputBg:#1e1070;
   --userBg:#2a0f00;--userBorder:#F9670266;
@@ -368,7 +368,7 @@
 #readme-pane h2{
   font-size:15px;font-weight:700;color:var(--panelLabel);
   font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;
-  margin:28px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border);
+  margin:28px 0 10px;padding-bottom:5px;border-bottom:2px solid var(--border2);
 }
 #readme-pane h3{
   font-size:13px;font-weight:700;color:var(--accent2);
