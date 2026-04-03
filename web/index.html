@@ -2221,10 +2221,10 @@ kbIngestBtn.onclick = async () => {
     const sk  = (data.results||[]).filter(r=>r.status==='skipped').length;
     const err = (data.results||[]).filter(r=>r.status==='error').length;
     if (err > 0) {
-      kbStatus.style.color = '#ef4444';
+      kbStatus.style.color = 'var(--accent)';
       kbStatus.textContent = `✗ ${err} error(s) · ${ok} ingested · ${sk} skipped`;
     } else if (ok === 0 && sk > 0) {
-      kbStatus.style.color = '#f59e0b';
+      kbStatus.style.color = 'var(--accent)';
       kbStatus.textContent = `⚠ ${sk} file(s) already ingested and unchanged — tick "Force re-ingest" to overwrite.`;
     } else {
       kbStatus.style.color = 'var(--accent)';
@@ -2311,7 +2311,7 @@ async function deleteIngestedFile(filename, btnEl) {
     const data = await res.json();
     if (data.ok) {
       if (statusEl) {
-        statusEl.style.color = '#22c55e';
+        statusEl.style.color = 'var(--accent)';
         statusEl.textContent = `✓ Deleted "${filename}" — ${data.vectors_deleted} vector(s) removed.`;
       }
       ingestResults.style.display = 'none';
@@ -2319,7 +2319,7 @@ async function deleteIngestedFile(filename, btnEl) {
     } else {
       const errs = (data.errors || []).join(', ');
       if (statusEl) {
-        statusEl.style.color = '#f59e0b';
+        statusEl.style.color = 'var(--accent)';
         statusEl.textContent = `⚠ Deleted with errors: ${errs}`;
       }
     }
