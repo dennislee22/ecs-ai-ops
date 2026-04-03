@@ -48,10 +48,9 @@ cmd = [
     "--host", "0.0.0.0",
     "--port", "8080",
     "--model-dir", str(QWEN_GGUF_MODEL"),
-    #"--model-dir", str(QWEN_GGUF_MODEL / "Qwen3-8B-Q4_K_M.gguf"),
     "--embed-dir", str(EMBED_MODEL),
 ]
-
+#"--model-dir", str(QWEN_GGUF_MODEL / "Qwen3-8B-Q4_K_M.gguf")
 with open(LOG_FILE, "w") as f:
     process = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
 
