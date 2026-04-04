@@ -683,7 +683,7 @@ def build_agent():
                 
                 # Differentiate the UI message and logs based on why it was bypassed
                 if is_cpu_overflow and not state.get("skip_synthesise", False):
-                    fallback_answer = f"⚠️ *LLM synthesis bypassed (Tool output is {total_tool_chars} characters, which exceeds the {SKIP_IF_TOOL_CHARS} character limit for CPU generation).* \n\n" + fallback_answer
+                    fallback_answer = f"⚠️ *Tool output exceeded the {SKIP_IF_TOOL_CHARS} limit ({total_tool_chars} characters). LLM synthesis was skipped as it would require significant CPU time; showing raw output instead.* \n\n" + fallback_answer
                     updates.append(f"⚡ CPU Auto-bypass: Output too long ({total_tool_chars} > {SKIP_IF_TOOL_CHARS})")
                     config.logger.info(f"[REQ:{req_id}] [llm_node] CPU Overflow ({total_tool_chars} > {SKIP_IF_TOOL_CHARS}). Bypassing LLM synthesis.")
                 else:
