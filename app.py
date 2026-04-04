@@ -648,7 +648,7 @@ def build_agent():
             "direct_answer": direct_answer,
         }
 
-def llm_node(state: AgentState):
+    def llm_node(state: AgentState):
         itr, msgs, updates = state.get("iteration", 0) + 1, state["messages"], list(state.get("status_updates", []))
         req_id = state.get("req_id", "")
 
