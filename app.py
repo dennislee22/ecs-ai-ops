@@ -38,7 +38,7 @@ _ROUTING_THRESHOLD_GGUF = 0.65
 _ROUTING_TOP_K_HF = 5
 #_ROUTING_THRESHOLD_HF = 0.65
 _ROUTING_THRESHOLD_HF = 0.65
-SKIP_IF_TOOL_CHARS = 2000
+SKIP_IF_TOOL_CHARS = 500
 
 logging.getLogger("weasyprint").setLevel(logging.ERROR)
 logging.getLogger("fontTools").setLevel(logging.ERROR)
