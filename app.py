@@ -105,6 +105,7 @@ _ROUTING_THRESHOLD_GGUF = 0.65
 _ROUTING_TOP_K_HF = 5
 #_ROUTING_THRESHOLD_HF = 0.65
 _ROUTING_THRESHOLD_HF = 0.65
+SKIP_IF_TOOL_CHARS = 2000
 
 def _sse(payload: dict) -> str:
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
@@ -647,7 +648,7 @@ def build_agent():
             "direct_answer": direct_answer,
         }
 
-    def llm_node(state: AgentState):
+def llm_node(state: AgentState):
         itr, msgs, updates = state.get("iteration", 0) + 1, state["messages"], list(state.get("status_updates", []))
         req_id = state.get("req_id", "")
 
@@ -660,8 +661,14 @@ def build_agent():
                 "direct_answer": None,
             }
 
-        if state.get("skip_synthesise", False):
-            tool_msgs = [m for m in msgs if isinstance(m, ToolMessage)]
+        # --- Calculate tool output sizes and detect engine ---
+        tool_msgs = [m for m in msgs if isinstance(m, ToolMessage)]
+        total_tool_chars = sum(len(str(m.content)) for m in tool_msgs)
+        _engine = "gguf" if tokenizer is None else "hf"
+        
+        is_cpu_overflow = ((_engine == "gguf" or config.NUM_GPU == 0) and total_tool_chars > SKIP_IF_TOOL_CHARS)
+
+        if state.get("skip_synthesise", False) or is_cpu_overflow:
             if tool_msgs:
                 parts = []
                 for r in tool_msgs:
@@ -673,9 +680,15 @@ def build_agent():
                         parts.append(f"**Raw output from tool `{r.name}`**:\n\n```text\n{content_str}\n```")
 
                 fallback_answer = "\n\n".join(parts)
-                updates.append("⚡ Skip Synthesise toggled: LLM synthesis bypassed")
-
-                config.logger.info(f"[REQ:{req_id}] [llm_node] Skip Synthesise is ON. Bypassing LLM...")
+                
+                # Differentiate the UI message and logs based on why it was bypassed
+                if is_cpu_overflow and not state.get("skip_synthesise", False):
+                    fallback_answer = f"⚠️ *LLM synthesis bypassed (Tool output is {total_tool_chars} characters, which exceeds the {SKIP_IF_TOOL_CHARS} character limit for CPU generation).* \n\n" + fallback_answer
+                    updates.append(f"⚡ CPU Auto-bypass: Output too long ({total_tool_chars} > {SKIP_IF_TOOL_CHARS})")
+                    config.logger.info(f"[REQ:{req_id}] [llm_node] CPU Overflow ({total_tool_chars} > {SKIP_IF_TOOL_CHARS}). Bypassing LLM synthesis.")
+                else:
+                    updates.append("⚡ Skip Synthesise toggled: LLM synthesis bypassed")
+                    config.logger.info(f"[REQ:{req_id}] [llm_node] Skip Synthesise is ON. Bypassing LLM...")
 
                 return {
                     "messages": [AIMessage(content=fallback_answer)],
