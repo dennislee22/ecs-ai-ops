@@ -463,18 +463,19 @@ def get_pod_status(namespace: str = "all", search: str | None = None,
                 phase_filter = phase.strip().capitalize()
 
         if not_running_mode:
+            # We must fetch all pods and filter client-side because the Kubernetes API 
+            # does not support server-side field selectors for container readiness.
+            raw_pods = _list_pods(namespace)
             pods = []
-            for p in _NOT_RUNNING_PHASES:
-                try:
-                    if namespace == "all":
-                        pods += _core.list_pod_for_all_namespaces(
-                            field_selector=f"status.phase={p}").items
-                    else:
-                        pods += _core.list_namespaced_pod(
-                            namespace=namespace,
-                            field_selector=f"status.phase={p}").items
-                except ApiException:
-                    pass
+            for pod in raw_pods:
+                ph = pod.status.phase or "Unknown"
+                ready = sum(1 for cs in (pod.status.container_statuses or []) if cs.ready)
+                total = len(pod.spec.containers) if pod.spec.containers else 0
+                
+                # Catch bad phases OR running pods that are missing ready containers
+                if ph in _NOT_RUNNING_PHASES or (ph == "Running" and ready < total):
+                    pods.append(pod)
+                    
         elif phase_filter:
             fs = f"status.phase={phase_filter}"
             if namespace == "all":
@@ -486,7 +487,7 @@ def get_pod_status(namespace: str = "all", search: str | None = None,
 
         if not pods:
             if not_running_mode:
-                return _ns_header("Pods", namespace) + "\n✅ All pods are Running — no Pending/Failed/Unknown pods found."
+                return _ns_header("Pods", namespace) + "\n✅ All pods are healthy — no Pending/Failed/Unknown or unready pods found."
             if phase_filter:
                 return _ns_header("Pods", namespace) + f"\nNo pods in phase `{phase_filter}` found."
             return f"No pods found in '{namespace}'."
@@ -517,7 +518,7 @@ def get_pod_status(namespace: str = "all", search: str | None = None,
                          reason))
 
         if not_running_mode:
-            kind_label = "Non-Running Pods (Pending / Failed / Unknown)"
+            kind_label = "Unhealthy / Non-Running Pods"
         elif phase_filter:
             kind_label = f"Pods (phase={phase_filter})"
         else:
@@ -552,7 +553,7 @@ def get_pod_status(namespace: str = "all", search: str | None = None,
 
         if not_running_mode and rows:
             lines.append(
-                f"\n{len(rows)} non-running pod(s) found. "
+                f"\n{len(rows)} unhealthy pod(s) found. "
                 "Ask for details on a specific pod to see logs and events."
             )
 
