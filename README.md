@@ -138,6 +138,7 @@ ECS AI Ops Chatbot is powered by:
 **Note:**  The tool is scripted to correlate the Cloudera AI username and the associated workbench/workspace namespace)
 - Show the resources usage for user Dennis in cmlwb1 workbench for the past 10 weeks
 - Who is cmlwb1-user-1?
+- List all sessions with cpu and mem requested by user Dennis in cmlwb1 workspace for the past 22 days
 
 ---
 
