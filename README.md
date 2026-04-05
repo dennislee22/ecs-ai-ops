@@ -125,15 +125,19 @@ ECS AI Ops Chatbot is powered by:
 
 - Is the cluster doing OK?
 - Where is grafana pod?
+- Is longhorn healthy?
 - List all pv that consume more than 80% of the allocated disk capacity
 - Which node has a GPU available and in use?
 - What storage classes are available in the cluster?
-- List all replicaset in cdp-keda namespace
 - Which nodes are ready and schedulable?
 - Show all warning events in cdp namespace
 - Decode cdp-private-installer-db-root-cert certificate in cdp ns
 - Show the top 3 pods with the highest CPU and RAM usage over the past 3 months across the cluster
-- Is user Dennis in cmlwb1 hogging resources for the past 20 days? (**Note:**  The tool is scripted to correlate the Cloudera AI username and the associated namespace)
+- Show the ingress traffic for the past 3 months
+
+**Note:**  The tool is scripted to correlate the Cloudera AI username and the associated workbench/workspace namespace)
+- Show the resources usage for user Dennis in cmlwb1 workbench for the past 10 weeks
+- Who is cmlwb1-user-1?
 
 ---
 
